@@ -1,0 +1,39 @@
+
+
+scp /home/cicconella/Downloads/solar_linux.tar.gz  acmarc@ime.usp.br:/home/posbio/acmarc/Documentos7/
+
+scp /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/parte13.phen /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/parte.ped /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/nome13 acmarc@ime.usp.br:/home/posbio/acmarc/Documentos7/ 
+
+ssh acmarc@ime.usp.br
+
+scp -r /home/posbio/acmarc/Documentos7 brucutu:/var/tmp
+
+ssh brucutu
+
+cd ../../../var/tmp/Documentos7
+ls -lh
+
+tar -xvzf solar_linux.tar.gz 
+./install_solar `pwd` `pwd`
+vim snp13.tcl
+
+proc snps13 {} {
+load pedigree /var/tmp/Documentos7/parte.ped
+load phenotypes /var/tmp/Documentos7/parte13.phen
+set fp [open /var/tmp/Documentos7/nome13]
+
+while {{} != [set cov [gets $fp]]} {
+model new
+trait CN1
+ covariates $cov
+polygenic -screen
+ file rename -force -- /var/tmp/Documentos7/CN1/polygenic.out /var/tmp/Documentos7/CN1p13/$cov
+}}
+
+mkdir CN1p13
+vim parte13.phen
+
+screen ./solar snps13
+exit
+
+rm -r Documentos7

@@ -1,0 +1,128 @@
+gen = function(a, p){
+  if(a[1]>p){
+    return(1)
+  }else if(a[2]>p){
+    return(2)
+  }else if(a[3]>p){
+    return(3)
+  }else{
+    return(NA)
+  }
+}
+
+avalia = function(teste){
+  
+  if(teste[1]==1){
+    linha1 = (paste(">",teste$Protein, sep=""))
+    linha2 = teste$Sequence
+    s = rbind(linha1, linha2)
+  }else if(teste[1]==2){
+    linha1 = (paste(">",teste$Protein, sep=""))
+    linha2 = teste$Sequence
+    linha3 = paste(linha1, "_", teste$Mutation, sep="")
+    linha4 = teste$mutacoes
+    s = rbind(linha1, linha2, linha3, linha4)
+  }else if(teste[1]==3){
+    linha1 = paste((paste(">",teste$Protein, sep="")), "_", teste$Mutation, sep="")
+    linha3 = teste$mutacoes
+    s = rbind(linha1, linha3)
+  }else{
+    s = NA
+  }
+  
+  return(s)
+}
+
+
+bib = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Documents/Genetics/new/bibliotecaMutFinal", header = T, sep = " ")
+dim(bib)
+head(bib)
+colnames(bib)
+
+amostras = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Documents/Genetics/new/samples")
+amostras = as.character(amostras[,1])
+amostras
+
+# amostras = c("WG0065749-DNA_103477", "WG0065746-DNA_103521", "WG0065747-DNA_103613", 
+#              "WG0060725-DNA_103576", "WG0065747-DNA_103642")
+
+ref = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Documents/Genetics/new/1/COPD_Gro.sample")
+head(ref)
+ref = as.character(ref[,1])
+
+tm = proc.time()
+for(sample in 10:10){
+  mycols <- rep("NULL", 1163)
+  n = (which(ref == amostras[sample])-2)*3+3
+  print(n)	
+  mycols[c(1:5, n:(n+2))] <- NA
+  
+  amostra = amostras[sample]
+  
+
+  for(chr in 1:22){
+    
+    ind <- read.table(paste("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Documents/Genetics/new/all/output", chr, sep=""), colClasses=mycols,  sep = " ")
+    head(ind)
+    
+    colnames(ind) = c("Chr", "ID", "Pos", "Ref", "Alt",  "P(0/0)", "P(0/1)", "P(1/1)")
+    head(ind)
+    
+    ind$Chr = chr
+    
+    head(bib[,1:8])
+    head(ind)
+    
+    
+    sit = apply(ind[,c(6:8)], 1, gen, p=0.95)
+    
+    head(ind)
+    dim(ind)
+    
+    length(which(is.na(sit)))
+    
+    ind = ind[-which(is.na(sit)),]
+    
+    dim(ind)
+    
+    sit = sit[-which(is.na(sit))]
+    
+    print(chr)
+    
+    ind = cbind(ind, sit)
+    
+    head(ind)
+    
+    ind = merge(ind, bib, by = c("Chr", "ID", "Pos", "Ref", "Alt"))
+    
+    dim(ind)
+    
+    head(ind)
+    
+    ind = ind[,c(9, 12, 13, 14, 15)]
+    
+    table(ind[,1])
+    
+    head(ind)
+    
+    #ind$ind = as.character(ind$ind)
+    ind$Sequence = as.character(ind$Sequence)
+    ind$mutacoes = as.character(ind$mutacoes)
+    
+    # teste = ind[1,]
+    # avalia(teste)
+    
+
+    arquivo = paste("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Google Drive/FASTA files/New-", amostra, sep="")
+    
+    for(i in 1:nrow(ind)){
+      cat(avalia(ind[i,]),file=arquivo,sep="\n",append=TRUE)
+    }
+    
+  }
+
+  
+}
+proc.time()-tm
+
+

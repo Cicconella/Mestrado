@@ -1,0 +1,96 @@
+for i in {1..22}; do echo -e "proc binariaCov$i {} {\nload pedigree ana2016.ped\nload phenotypes /home/cicconella/Dropbox/2016/files/5phen$i.phen\n	set fp [open /home/cicconella/Dropbox/2016/files/5nomes$i]\n\nwhile {{} != [set trt [gets \$fp]]} {\n	model new\n	trait \$trt\n	covariates sexo idade \n	polygenic -screen\n	}\n}" >binariaCov$i.tcl; done
+
+proc binariaCov1 {} {
+	load pedigree ana2016.ped
+	load phenotypes /home/cicconella/Dropbox/2016/files/5phen1.phen
+
+	set fp [open /home/cicconella/Dropbox/2016/files/5nomes1]
+
+	while {{} != [set trt [gets $fp]]} {
+
+	model new
+	trait $trt
+	covariates sexo idade sexo*idade
+	polygenic -screen
+	}
+}
+
+proc binariaCov22 {} {
+	load pedigree ana2016.ped
+	load phenotypes /home/cicconella/Dropbox/2016/files/5phen22.phen
+
+	set fp [open /home/cicconella/Dropbox/2016/files/5nomes22]
+
+	while {{} != [set trt [gets $fp]]} {
+
+	model new
+	trait altura
+	covariates $trt sexo idade
+	polygenic -screen
+
+	
+	file rename -force -- /home/cicconella/Documents/Solar/altura/polygenic.out /home/cicconella/Dropbox/2016/Altura/resultado1/cn	
+
+	}
+}
+
+
+for i in {1..22}; do echo -e "proc binariaCov$i {} {\nload pedigree ana2016.ped\nload phenotypes /home/cicconella/Dropbox/2016/files/5phen$i.phen\n	set fp [open /home/cicconella/Dropbox/2016/files/5nomes$i]\nwhile {{} != [set trt [gets \$fp]]} {\nmodel new\ntrait altura\ncovariates \$trt \npolygenic -screen\nfile rename -force -- /home/cicconella/Documents/Solar/altura/polygenic.out /home/cicconella/Dropbox/2016/Altura/resultado$i/\$trt\n}\n}" >binariaCov$i.tcl; done
+
+for i in {2..21}; do echo -e "./solar binariaCov$i\n\n"; done > fenotipos.sh
+
+
+file rename ?-force? ?--? source target
+
+for i in {1..22}; do echo -e "./solar binariaCov$i\nmv cn* saida$i\ncd saida$i\n\nfind . -name 'polygenic.out' -exec grep \"H2r is\" {} \; > herdabilidade\nfind . -name 'polygenic.out' -exec sed -n 6p {} \; > herdSd\nfind . -name 'polygenic.out' -exec grep \"Trait: \" {} \; > trait\nfind . -name 'polygenic.out' -exec grep \"sexo  p =\" {} \; > sexo\nfind . -name 'polygenic.out' -exec grep \"idade  p =\" {} \; > idade\n\nrm -r cn*\nhead *\nwc *\ncd ..\nrm binariaCov$i.tcl\n"; done > final.sh
+
+
+./solar binariaCov22
+mv cn* saida22
+cd saida22
+
+find . -name 'polygenic.out' -exec grep "H2r is" {} \; > herdabilidade
+find . -name 'polygenic.out' -exec sed -n 6p {} \; > herdSd
+find . -name 'polygenic.out' -exec grep "Trait: " {} \; > trait
+find . -name 'polygenic.out' -exec grep "sexo  p =" {} \; > sexo
+find . -name 'polygenic.out' -exec grep "idade  p =" {} \; > idade
+
+rm -r cn*
+head *
+wc *
+cd ..
+rm binariaCov22.tcl
+
+
+mv polygenic.out /home/cicconella/Dropbox/2016/Altura/cn
+
+
+
+
+
+
+
+
+
+
+
+for i in {1..22}; do echo -e "cd resultado$i\n\nfind . -name 'cn*' -exec sed -n 5p {} \; >hp\nfind . -name 'cn*' -exec sed -n 6p {} \; >hsd\nfind . -name 'cn*' -exec sed -n 8p {} \; >copy\n\ncd .."; done >extract.sh
+
+
+for i in {2..22}; do echo -e "cd Resultados\ Covariaveis/resultado$i\n\nrm cn\n\ncd ../"; done >bla.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

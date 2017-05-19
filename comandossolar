@@ -1,0 +1,49 @@
+
+
+load pedigree /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/parte.ped
+load phenotype /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/teste.phen
+
+model new
+trait altura
+polygenic -screen
+
+model new
+trait altura
+covariate CN1
+polygenic -screen
+
+model new
+trait altura
+covariate CN1 Idade SEX
+polygenic -screen
+
+model new
+trait CN1
+polygenic -screen
+
+model new
+trait CN1
+covariate rs2342723
+polygenic -screen
+
+
+
+-----------------------------------------------------------------
+
+load pedigree /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/dataset.ped
+load phenotype /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/data.phen
+
+model new
+trait altura
+polygenic -screen
+
+-----------------------------------------------------------------
+
+load pedigree /home/cicconella/Documents/Solar/ana2016.ped
+load phenotype /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/files/5phen1.phen
+
+model new
+trait altura
+polygenic -screen
+
+-----------------------------------------------------------------

@@ -1,0 +1,29 @@
+for i in {2..19};
+do sed -i 's/\s/,/g' parte$i.phen;
+sed -i 's/-1/NA/g' parte$i.phen ;
+done
+
+for i in {1..19};
+do head -n 1 parte$i.phen >aux; 
+sed -i 's/,/\n/g' aux; 
+tail -n +7 aux >nome$i;
+rm aux;
+done 
+
+for i in {1..19}; 
+do 
+echo -e "proc snps$i {} {\nload pedigree /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/parte.ped\nload phenotypes /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/parte$i.phen\n	set fp [open /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/nome$i]\n\nwhile {{} != [set cov [gets \$fp]]} {\n	model new\n	trait CN1 \n covariates \$cov \n	polygenic -screen\n	 file rename -force -- /home/cicconella/Documents/Solar/CN1/polygenic.out /media/cicconella/8AA6013CA6012A71/Users/Nina/Dropbox/2016/SNPS/CN1/\$cov\n}}\n" >snp$i.tcl; 
+done
+
+
+find . -name 'polygenic.out' -exec grep "H2r is" {} \; > herdabilidade
+find . -name 'polygenic.out' -exec grep "rs" {} \; > snp
+
+grep "H2r is" * >../herdabilidade
+
+find . -name 'rs*' -exec grep "H2r is" {} \; > herdabilidade
+
+
+sed -n 8p CN1*/rs* > pvalue
+grep 'H2r is' -R CN1*/rs* > herdabilidade 
+
