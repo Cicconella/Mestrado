@@ -4,8 +4,9 @@
 options(useHTTPS=FALSE, BioC_mirror="http://bioconductor.org")
 source("http://bioconductor.org/biocLite.R")
 biocLite("CNTools")
+biocLite("Sushi")
 library("CNTools")
-
+library(Sushi)
 
 
 itStwo = function(x){
@@ -82,7 +83,7 @@ group = function(a){
 ########## APT/PennCNV outputs ##########
 
 ### Information about CNV regions
-cnv = read.table("../tableCNV", sep="\t", header = F)
+cnv = read.table("../DadosMestrado/tableCNV", sep="\t", header = F)
 colnames(cnv) = c("Chr","Start","End","Number","Length", "State", "CN", "Sample", "First Marker", "Last Marker")
 head(cnv)
 summary(cnv)
@@ -90,7 +91,7 @@ dim(cnv)
 attach(cnv)
 
 ### Information about quality control PennCNV per sample
-qc = read.table("../tableQC", sep="\t", header = T)
+qc = read.table("../DadosMestrado/tableQC", sep="\t", header = T)
 qc = qc[order(qc$File),] 
 head(qc)
 summary(qc)
@@ -135,6 +136,8 @@ remove(fail1)
 
 ########## BY chromosome ##########
 
+# Find the minimal regions for each chromosome
+
 chromosomes <- vector("list",22)
 
 for(i in 1:22){
@@ -174,6 +177,79 @@ remove(cnvA)
 remove(aux)
 remove(rsByregion)
 remove(seg)
+
+chromosomes[[1]][1,]
+
+
+contaMut = function(x){
+  return(length(which(x!=2))-3)
+}
+
+contaMut(chromosomes[[1]][2,])
+
+plotar = cbind(chromosomes[[1]][,1:3], apply(chromosomes[[1]], 1, contaMut))
+plotar = as.data.frame(plotar)
+colnames(plotar) = c("chrom", "start", "end", "score")
+plotar = plotar[-1,]
+plotar[,1] = "chr1"
+
+plotar[1:10,]
+tail(plotar)
+
+apply(plotar, 2, class)
+
+chrom = plotar[1,1]
+chromstart = chromosomes[[1]][2,2]
+chromend = chromosomes[[1]][nrow(chromosomes[[1]]),3]
+
+
+
+plotar[which(plotar[,4]>800),]
+plotar[which(plotar[,2]>110000000),]
+
+png("../DadosMestrado/Sushi/chr1.png")
+
+
+plotBedgraph(plotar, chrom, chromstart,
+             chromend, main = "CNVs per region (1019 samples)",
+             colorbycol= SushiColors(5))
+
+labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+axis(side=2,las=2,tcl=.2)
+
+dev.off()
+
+for(i in 1:22){
+  plotar = cbind(chromosomes[[i]][,1:3], apply(chromosomes[[i]], 1, contaMut))
+  
+  plotar = as.data.frame(plotar)
+  colnames(plotar) = c("chrom", "start", "end", "score")
+  
+  plotar[,1] = paste("chr",i, sep="")
+  
+  plotar$score[which(plotar$score<0)]=0
+  
+  chrom = plotar[1,1]
+  chromstart = chromosomes[[i]][2,2]
+  chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
+  
+  png(paste("../DadosMestrado/Sushi/chr",i,".png", sep=""))
+      plotBedgraph(plotar, chrom, chromstart,
+                   chromend, main = "CNVs per region (1019 samples)",
+                   colorbycol= SushiColors(5))
+      
+      labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+      mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+      axis(side=2,las=2,tcl=.2)
+  dev.off()
+  
+  print(i)
+}
+
+
+
+
 
 sizesT= c()
 for(x in 1:22){
@@ -285,7 +361,7 @@ remove(maf)
 remove(mut_0)
 remove(mut_1)
 remove(x)
-remove(y)
+remove(y)plotar[,2]>125000000
 
 ########## Individuals ##########
 
