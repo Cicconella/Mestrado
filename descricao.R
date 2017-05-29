@@ -1,4 +1,6 @@
-a = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/tableCNV")
+#Download file from Dropbox
+
+a = read.table("../tableCNV")
 
 head(a)
 

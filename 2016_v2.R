@@ -1,6 +1,13 @@
 
 ########## Functions ##########
 
+options(useHTTPS=FALSE, BioC_mirror="http://bioconductor.org")
+source("http://bioconductor.org/biocLite.R")
+biocLite("CNTools")
+library("CNTools")
+
+
+
 itStwo = function(x){
   x[which(x==-1)] = 2 
   return(x)
@@ -71,16 +78,19 @@ group = function(a){
   return(g)
 }
 
+
 ########## APT/PennCNV outputs ##########
 
-cnv = read.table("/Users/Ana/Google Drive/2016/LRR-BAF/tableCNV.filepart", sep="\t", header = F)
+### Information about CNV regions
+cnv = read.table("../tableCNV", sep="\t", header = F)
 colnames(cnv) = c("Chr","Start","End","Number","Length", "State", "CN", "Sample", "First Marker", "Last Marker")
 head(cnv)
 summary(cnv)
 dim(cnv)
 attach(cnv)
 
-qc = read.table("/Users/Ana/Google Drive/2016/LRR-BAF/tableQC", sep="\t", header = T)
+### Information about quality control PennCNV per sample
+qc = read.table("../tableQC", sep="\t", header = T)
 qc = qc[order(qc$File),] 
 head(qc)
 summary(qc)
@@ -121,7 +131,7 @@ remove(qc)
 remove(fail3)
 remove(fail2)
 remove(fail1)
-remove(ind)
+#remove(ind)
 
 ########## BY chromosome ##########
 
