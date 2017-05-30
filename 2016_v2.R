@@ -388,7 +388,7 @@ str(ind)
 
 # Associacao 
 
-cel = IID Vicious Delicious
+cel = IID 
 
 for(i in 1:length(cel)){
   
