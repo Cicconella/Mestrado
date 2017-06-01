@@ -3,11 +3,12 @@
 
 options(useHTTPS=FALSE, BioC_mirror="http://bioconductor.org")
 source("http://bioconductor.org/biocLite.R")
-biocLite("CNTools")
-biocLite("Sushi")
+#biocLite("CNTools")
+#biocLite("Sushi")
 library("CNTools")
 library(Sushi)
-
+#install.packages("stargazer")
+library(stargazer)
 
 itStwo = function(x){
   x[which(x==-1)] = 2 
@@ -80,6 +81,8 @@ group = function(a){
 }
 
 
+
+
 ########## APT/PennCNV outputs ##########
 
 ### Information about CNV regions
@@ -133,6 +136,119 @@ remove(fail3)
 remove(fail2)
 remove(fail1)
 #remove(ind)
+
+
+########## Description ##########
+
+dim(cnv)
+head(cnv)
+summary(cnv)
+
+attach(cnv)
+
+##### Samples #####
+Sample
+print(paste("Total de amostras:", length(unique(Sample))))
+
+x = as.numeric(table(Sample))
+summary(x)
+sd(as.numeric(table(Sample)))^2
+
+m=226
+
+length(which(x<m))/length(x)
+
+boxplot(x[which(x<m)], main = "Distribution of Number os CNVs for each sample", col = "lightblue")
+hist(x[which(x<m)])
+summary(x[which(x<m)])
+sd(x[which(x<m)])
+
+shapiro.test(x[which(x<m)])
+
+shapiro.test(x)
+
+png("../DadosMestrado/plots/numberCNVs.png")
+hist(table(Sample), nc = 1000, main = "Number of CNVs per sample", xlab = "Number of CNVs")
+dev.off()
+
+table(Sample)[which(table(Sample)>500)]
+paste(length(which(table(Sample)>500))/length(unique(Sample)), "são maiores que 500")
+paste(length(which(table(Sample)>250))/length(unique(Sample)), "são maiores que 250")
+paste(length(which(table(Sample)>100))/length(unique(Sample)), "são maiores que 100")
+
+porcentagens = c()
+
+for(i in seq(0,3000, by =25)){
+  porcentagens = c(porcentagens, length(which(table(Sample)<i))/length(unique(Sample)))
+}
+
+porcentagens
+
+# png("../DadosMestrado/plots/samplesSize.png")
+# plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
+# lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
+# dev.off()
+# 
+bla = cbind(seq(0,3000, by =25), porcentagens)
+
+stargazer(bla, digits = 2)
+
+head(cnv)
+
+barplot(table(CN)/sum(table(CN)), col = "blue", xlab = "Copy Number", 
+        ylab = "Frequency (%)", main = "Frequency of Copy Number",
+        ylim = c(0,0.7))
+
+table(CN)/sum(table(CN))
+
+which(table(Sample)<101)
+names(which(table(Sample)<101))
+
+bla = cnv[cnv$Sample %in% names(which(table(Sample)<101)),]
+
+bla[1:100,]
+
+barplot(table(bla$CN)/sum(table(bla$CN)), col = "blue", xlab = "Copy Number", 
+        ylab = "Frequency (%)", main = "Frequency of Copy Number",
+        ylim = c(0,0.7))
+
+table(bla$CN)/sum(table(bla$CN))
+
+##### Size
+Size = Length
+summary(Size)
+
+hist(Size, nc=100)
+barplot(table(Size))
+
+barplot(c(1,5,6))
+
+mean(Size)
+summary(Size)
+
+data = Size
+hist(log10(data), nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length")
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+
+head(cnv)
+
+hist(log10(cnv[cnv$CN<2,5]), 
+     nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
+     col="blue", main = "Histogram of Deletions Length")
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+
+hist(log10(cnv[cnv$CN>2,5])), 
+     nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
+     col="blue", main = "Histogram of Deletions Length")
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+
+
+
+png("../DadosMestrado/plots/lenghtByNumber.png")
+plot(as.numeric(table(Sample)),medias[,2], pch=".", xlab = "Number of CNVs",
+     ylab = "Mean length of CNVs")
+dev.off()
+
 
 ########## BY chromosome ##########
 
@@ -248,7 +364,15 @@ for(i in 1:22){
 }
 
 
+bla = merge(plotar[which(plotar[,4]>800), chromosomes[[1]],], by="start")
 
+bla[1:10,1:10]
+
+dim(bla)
+
+table(as.numeric(bla[1,-c(1:3)]))
+
+summary(plotar[which(plotar[,4]>800),])
 
 
 sizesT= c()
