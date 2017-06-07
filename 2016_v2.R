@@ -81,6 +81,11 @@ group = function(a){
 }
 
 
+contaMut = function(x){
+  return(length(which(x!=2))-3)
+}
+
+
 
 
 ########## APT/PennCNV outputs ##########
@@ -99,6 +104,8 @@ qc = qc[order(qc$File),]
 head(qc)
 summary(qc)
 dim(qc)
+
+
 
 ########## Cleaning Bad Samples ##########
 length(which(qc$LRR_SD > 0.35))
@@ -138,6 +145,7 @@ remove(fail1)
 #remove(ind)
 
 
+
 ########## Description ##########
 
 dim(cnv)
@@ -145,6 +153,7 @@ head(cnv)
 summary(cnv)
 
 attach(cnv)
+
 
 ##### Samples #####
 Sample
@@ -214,7 +223,8 @@ barplot(table(bla$CN)/sum(table(bla$CN)), col = "blue", xlab = "Copy Number",
 
 table(bla$CN)/sum(table(bla$CN))
 
-##### Size
+
+##### Size #####
 Size = Length
 summary(Size)
 
@@ -237,17 +247,22 @@ hist(log10(cnv[cnv$CN<2,5]),
      col="blue", main = "Histogram of Deletions Length")
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
 
-hist(log10(cnv[cnv$CN>2,5])), 
+hist(log10(cnv[cnv$CN>2,5]), 
      nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
      col="blue", main = "Histogram of Deletions Length")
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
 
 
+head(cnv)
 
-png("../DadosMestrado/plots/lenghtByNumber.png")
-plot(as.numeric(table(Sample)),medias[,2], pch=".", xlab = "Number of CNVs",
-     ylab = "Mean length of CNVs")
-dev.off()
+for(i in 1:22){
+  png(paste("../DadosMestrado/plots/length", i, ".png", sep=""))
+  hist(log10(cnv$Length[cnv$Chr==3]), col = rgb(0,0,1), nc = 100, xaxt="n", 
+       xlab = "Length of CNV", ylab = "Absolute Frequency", main = "Histogram of CNV Length")
+  axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+  dev.off()
+}
+
 
 
 ########## BY chromosome ##########
@@ -288,91 +303,133 @@ for(i in 1:22){
   chromosomes[[i]] = cnvA
 }
 
-remove(cnv)
 remove(cnvA)
 remove(aux)
 remove(rsByregion)
 remove(seg)
 
-chromosomes[[1]][1,]
 
+##### Testes #####
 
-contaMut = function(x){
-  return(length(which(x!=2))-3)
-}
+chr = 6
 
-contaMut(chromosomes[[1]][2,])
+chromosomes[[chr]][1,]
 
-plotar = cbind(chromosomes[[1]][,1:3], apply(chromosomes[[1]], 1, contaMut))
+contaMut(chromosomes[[chr]][2,])
+
+plotar = cbind(chromosomes[[chr]][,1:3], apply(chromosomes[[chr]], 1, contaMut))
 plotar = as.data.frame(plotar)
 colnames(plotar) = c("chrom", "start", "end", "score")
-plotar = plotar[-1,]
-plotar[,1] = "chr1"
+#plotar = plotar[-1,]
+plotar[,1] = "chr6"
 
 plotar[1:10,]
 tail(plotar)
-
-apply(plotar, 2, class)
 
 chrom = plotar[1,1]
 chromstart = chromosomes[[1]][2,2]
 chromend = chromosomes[[1]][nrow(chromosomes[[1]]),3]
 
-
-
-plotar[which(plotar[,4]>800),]
+plotar[which(plotar[,4]>400),]
+summary(plotar[which(plotar[,4]>400),])
 plotar[which(plotar[,2]>110000000),]
 
-png("../DadosMestrado/Sushi/chr1.png")
+# png("../DadosMestrado/Sushi/chr1.png")
+# plotBedgraph(plotar, chrom, chromstart,
+#              chromend, main = "CNVs per region (1019 samples)",
+#              colorbycol= SushiColors(5))
+# 
+# labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+# mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+# axis(side=2,las=2,tcl=.2)
+# dev.off()
+
+# Teste para achar coisas
+
+bla = merge(plotar[which(plotar[,4]>400),], chromosomes[[chr]], by="start")
+
+bla[1:10,1:10]
+
+dim(bla)
+
+table(as.numeric(bla[10,-c(1:6)]))
+
+cnv[Sample==1,]
+
+summary(chromosomes[[4]][,4])
+
+chromosomes[[4]][which(chromosomes[[4]][,2]==9832515),1:4]
+
+##### CNVs, onde estao? #####
+
+table(cnv$Chr)
+barplot(table(cnv$Chr), xlab = "Chromosome", names.arg=c(1:22),col="blue", cex.names  = 0.75,
+        main = "CNVs detected by Chromosome", ylab = "Absolute frequency")
 
 
-plotBedgraph(plotar, chrom, chromstart,
-             chromend, main = "CNVs per region (1019 samples)",
-             colorbycol= SushiColors(5))
+tamanhos = read.table("../DadosMestrado/chromo", header = T, sep = "\t")
+head(tamanhos)
+tamanhos = tamanhos[,-c(3,4)]
 
-labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
-mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
-axis(side=2,las=2,tcl=.2)
-
-dev.off()
+prop = c()
+prop2 = c()
 
 for(i in 1:22){
-  plotar = cbind(chromosomes[[i]][,1:3], apply(chromosomes[[i]], 1, contaMut))
+  
+  if(i!=2){
+    plotar = cbind(chromosomes[[i]][,1:3], apply(chromosomes[[i]], 1, contaMut))  
+  } else{
+    plotar = cbind(chromosomes[[i]][,1:3], (apply(chromosomes[[i]], 1, contaMut)+1))    
+  }
+  
   
   plotar = as.data.frame(plotar)
   colnames(plotar) = c("chrom", "start", "end", "score")
   
   plotar[,1] = paste("chr",i, sep="")
   
-  plotar$score[which(plotar$score<0)]=0
-  
-  chrom = plotar[1,1]
-  chromstart = chromosomes[[i]][2,2]
-  chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
-  
-  png(paste("../DadosMestrado/Sushi/chr",i,".png", sep=""))
-      plotBedgraph(plotar, chrom, chromstart,
-                   chromend, main = "CNVs per region (1019 samples)",
-                   colorbycol= SushiColors(5))
-      
-      labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
-      mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
-      axis(side=2,las=2,tcl=.2)
-  dev.off()
+  # chrom = plotar[1,1]
+  # chromstart = chromosomes[[i]][1,2]
+  # chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
+
+  # png(paste("../DadosMestrado/Sushi/chr",i,".png", sep=""))
+  #     plotBedgraph(plotar, chrom, chromstart,
+  #                  chromend, main = "CNVs per region (1019 samples)",
+  #                  colorbycol= SushiColors(5))
+  # 
+  #     labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+  #     mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+  #     axis(side=2,las=2,tcl=.2)
+  # dev.off()
   
   print(i)
+
+  
+  bla = plotar$end-plotar$start+1
+  bla = sum(bla[which(plotar$score!=0)])
+  
+  prop = c(prop, bla/tamanhos$Total.length..bp.[i])
+  
+  bla = plotar$end-plotar$start+1
+  bla = sum(bla[which(plotar$score>20)])
+  
+  prop2 = c(prop2, bla/tamanhos$Total.length..bp.[i])
+  
 }
 
+png("../DadosMestrado/plots/prop.png")
+  barplot(prop*100, names.arg=c(1:22),col="blue", ylab = "Proportion of CNVs (%)", xlab = "Chromosome", 
+        main = "Proportion of CNVs by Chromosome",cex.names  = 0.75, ylim = c(0,70))
+dev.off()
 
-bla = merge(plotar[which(plotar[,4]>800), chromosomes[[1]],], by="start")
+barplot(prop2*100, names.arg=c(1:22),col="blue", ylab = "Proportion of CNVs (%)", xlab = "Chromosome", 
+        main = "Proportion of CNVs by Chromosome",cex.names  = 0.75, ylim=c(0,70))
 
-bla[1:10,1:10]
 
-dim(bla)
+barplot(t(cbind(prop,prop2))*100, beside = T, col = c("blue", "green"), names.arg = c(1:22),
+        ylab = "Proportion of CNVs (%)", xlab = "Chromosome", cex.names  = 0.75, main = "Proportion of CNVs by Chromosome")
+legend("topleft",c(">1 Sample", ">20 Samples"),col = c("blue", "green"), pch = 15)
 
-table(as.numeric(bla[1,-c(1:3)]))
-
-summary(plotar[which(plotar[,4]>800),])
 
 
 sizesT= c()
@@ -389,6 +446,10 @@ dev.off()
 remove(x)
 remove(y)
 remove(i)
+
+##### Proportion CNVs #####
+
+head(cnv)
 
 ########## Cleaning CNV Regions ##########
 
