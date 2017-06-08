@@ -10,8 +10,12 @@ library(Sushi)
 #install.packages("stargazer")
 library(stargazer)
 
-itStwo = function(x){
-  x[which(x==-1)] = 2 
+arruma = function(x){
+  x[which(x==1)] = 0
+  x[which(x==2)] = 1
+  x[which(x==-1)] = 2
+  x[which(x==5)] = 3
+  x[which(x==6)] = 4
   return(x)
 }
 
@@ -265,11 +269,13 @@ for(i in 1:22){
 
 
 
+
 ########## BY chromosome ##########
 
 # Find the minimal regions for each chromosome
 
 chromosomes <- vector("list",22)
+
 
 for(i in 1:22){
   
@@ -285,7 +291,7 @@ for(i in 1:22){
   
   aux <- data.frame(c(aux$Sample,ind), c(aux$Chr,rep(i, length(ind))), 
                     c(aux$Start,rep(1, length(ind))), c(aux$End,rep(max(aux$End), length(ind))), 
-                    c(aux$Number,rep(1, length(ind))), c(aux$CN,rep(-1, length(ind))))
+                    c(aux$Number,rep(1, length(ind))), c(aux$State,rep(-1, length(ind))))
   colnames(aux) = c("ID", "chrom", "loc.start", "loc.end", "num.mark",  "seg.mean")
   str(aux)
   head(aux)
@@ -296,11 +302,14 @@ for(i in 1:22){
   rsByregion <- getRS(seg, by = "region", imput = TRUE, XY = FALSE, what = "max")
   cnvA = rs(rsByregion)
   head(cnvA)
+  cnvA[1:10,1:10]
   
   dim(cnvA)
-  cnvA = apply(cnvA,2,itStwo)
+  cnvA = cbind(cnvA[,1:3],apply(cnvA[,-c(1:3)],2,arruma))
   
   chromosomes[[i]] = cnvA
+  
+
 }
 
 remove(cnvA)
@@ -311,8 +320,7 @@ remove(seg)
 
 ##### Testes #####
 
-chr = 6
-
+chr =  6
 chromosomes[[chr]][1,]
 
 contaMut(chromosomes[[chr]][2,])
@@ -321,29 +329,30 @@ plotar = cbind(chromosomes[[chr]][,1:3], apply(chromosomes[[chr]], 1, contaMut))
 plotar = as.data.frame(plotar)
 colnames(plotar) = c("chrom", "start", "end", "score")
 #plotar = plotar[-1,]
-plotar[,1] = "chr6"
+plotar[,1] = paste("chr",chr, sep = "")
 
 plotar[1:10,]
 tail(plotar)
 
 chrom = plotar[1,1]
-chromstart = chromosomes[[1]][2,2]
-chromend = chromosomes[[1]][nrow(chromosomes[[1]]),3]
+chromstart = chromosomes[[chr]][2,2]
+chromend = chromosomes[[chr]][nrow(chromosomes[[chr]]),3]
 
-plotar[which(plotar[,4]>400),]
-summary(plotar[which(plotar[,4]>400),])
-plotar[which(plotar[,2]>110000000),]
 
 # png("../DadosMestrado/Sushi/chr1.png")
-# plotBedgraph(plotar, chrom, chromstart,
-#              chromend, main = "CNVs per region (1019 samples)",
-#              colorbycol= SushiColors(5))
+ plotBedgraph(plotar, chrom, chromstart,
+              chromend, main = "CNVs per region (1019 samples)",
+              colorbycol= SushiColors(5))
 # 
-# labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
-# mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
-# axis(side=2,las=2,tcl=.2)
+ labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+ mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+ axis(side=2,las=2,tcl=.2)
 # dev.off()
 
+ plotar[which(plotar[,4]>400),]
+ dim(plotar[which(plotar[,4]>400),])
+ summary(plotar[which(plotar[,4]>400),])
+ 
 # Teste para achar coisas
 
 bla = merge(plotar[which(plotar[,4]>400),], chromosomes[[chr]], by="start")
@@ -352,13 +361,20 @@ bla[1:10,1:10]
 
 dim(bla)
 
-table(as.numeric(bla[10,-c(1:6)]))
+tabela = c()
+
+for(i in 1:dim(bla)[1]){
+  tabela = rbind(tabela,table(as.numeric(bla[i,-c(1:6)])))
+}
+
+tabela
+
+mean(apply(tabela[1:29,1:2],1,sum))/mean(apply(tabela[,c(1:2,4:5)],1,sum))
+
+mean(apply(tabela[,c(1:2,4:5)],1,sum))
 
 cnv[Sample==1,]
 
-summary(chromosomes[[4]][,4])
-
-chromosomes[[4]][which(chromosomes[[4]][,2]==9832515),1:4]
 
 ##### CNVs, onde estao? #####
 
@@ -388,19 +404,19 @@ for(i in 1:22){
   
   plotar[,1] = paste("chr",i, sep="")
   
-  # chrom = plotar[1,1]
-  # chromstart = chromosomes[[i]][1,2]
-  # chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
+   chrom = plotar[1,1]
+   chromstart = chromosomes[[i]][1,2]
+   chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
 
-  # png(paste("../DadosMestrado/Sushi/chr",i,".png", sep=""))
-  #     plotBedgraph(plotar, chrom, chromstart,
-  #                  chromend, main = "CNVs per region (1019 samples)",
-  #                  colorbycol= SushiColors(5))
-  # 
-  #     labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
-  #     mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
-  #     axis(side=2,las=2,tcl=.2)
-  # dev.off()
+   png(paste("../DadosMestrado/Sushi/chr",i,".png", sep=""))
+       plotBedgraph(plotar, chrom, chromstart,
+                    chromend, main = "CNVs per region (1019 samples)",
+                    colorbycol= SushiColors(5))
+   
+       labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+       mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+       axis(side=2,las=2,tcl=.2)
+   dev.off()
   
   print(i)
 
@@ -419,17 +435,19 @@ for(i in 1:22){
 
 png("../DadosMestrado/plots/prop.png")
   barplot(prop*100, names.arg=c(1:22),col="blue", ylab = "Proportion of CNVs (%)", xlab = "Chromosome", 
-        main = "Proportion of CNVs by Chromosome",cex.names  = 0.75, ylim = c(0,70))
+        main = "Proportion of CNVs by Chromosome",cex.names  = 0.75, ylim = c(0,100))
 dev.off()
 
+png("../DadosMestrado/plots/prop2.png")
 barplot(prop2*100, names.arg=c(1:22),col="blue", ylab = "Proportion of CNVs (%)", xlab = "Chromosome", 
         main = "Proportion of CNVs by Chromosome",cex.names  = 0.75, ylim=c(0,70))
+dev.off()
 
-
+png("../DadosMestrado/plots/props.png")
 barplot(t(cbind(prop,prop2))*100, beside = T, col = c("blue", "green"), names.arg = c(1:22),
         ylab = "Proportion of CNVs (%)", xlab = "Chromosome", cex.names  = 0.75, main = "Proportion of CNVs by Chromosome")
 legend("topleft",c(">1 Sample", ">20 Samples"),col = c("blue", "green"), pch = 15)
-
+dev.off()
 
 
 sizesT= c()
@@ -447,9 +465,7 @@ remove(x)
 remove(y)
 remove(i)
 
-##### Proportion CNVs #####
 
-head(cnv)
 
 ########## Cleaning CNV Regions ##########
 
@@ -552,7 +568,7 @@ remove(y)plotar[,2]>125000000
 
 # Sample Data
 
-info = read.table("/home/cicconella/Dropbox/2016/Project/dados2", header = T, sep = ",")
+info = read.table("/home/cicconella/DadosMestrado/dados2", header = T, sep = ",")
 
 head(info)  
 summary(info)
@@ -562,7 +578,7 @@ attach(info)
 
 # Association between sample id and celfiles
 
-ind = read.table("/home/cicconella/Dropbox/2016/Project/individuos")
+ind = read.table("/home/cicconella/DadosMestrado/individuos")
 colnames(ind) = c("cel", "IID")
 
 class(ind)
@@ -581,7 +597,7 @@ for(i in 1:length(cel)){
   if(length(aux)!=0)
     cel[i] = max(ind$cel[aux])
   else
-    cel[i] = NAn = length(unique(dataset$FID))
+    cel[i] = NA
 }
 
 cel[1:10]
@@ -625,6 +641,14 @@ remove(i)
 remove(names)
 remove(k)
 remove(cel)
+
+##### Genotipo e fenotipo #####
+
+head(info)
+
+info[which(info$cel==1),]
+
+chromosomes[[1]][1:10,1:10]
 
 ########## Getting the files ped and phen ##########
 
