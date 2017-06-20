@@ -5,10 +5,10 @@ options(useHTTPS=FALSE, BioC_mirror="http://bioconductor.org")
 source("http://bioconductor.org/biocLite.R")
 #biocLite("CNTools")
 #biocLite("Sushi")
-library("CNTools")
-library(Sushi)
 #install.packages("stargazer")
-library(stargazer)
+library("CNTools")
+#library(Sushi)
+#library(stargazer)
 
 arruma = function(x){
   x[which(x==1)] = 0
@@ -38,13 +38,6 @@ cont_4 = function(x){
   length(which(x[-c(1,2,3)]==4))
 }
 
-mut_0 = apply(cnvs,1,cont_0)
-mut_1 = apply(cnvs,1,cont_1)
-mut_2 = apply(cnvs,1,cont_2)
-mut_3 = apply(cnvs,1,cont_3)
-mut_4 = apply(cnvs,1,cont_4)
-
-mutacoes = cbind(mut_0,mut_1,mut_2,mut_3,mut_4)
 
 grupos = function(a){
   t = sum(a)
@@ -65,12 +58,6 @@ grupos = function(a){
 }
 
 
-cont_0 = function(x){
-  length(which(x[-c(1,2,3)]==0))
-}
-cont_1 = function(x){
-  length(which(x[-c(1,2,3)]==1))
-}
 
 group = function(a){
   t = sum(a)
@@ -108,8 +95,6 @@ qc = qc[order(qc$File),]
 head(qc)
 summary(qc)
 dim(qc)
-
-
 
 ########## Cleaning Bad Samples ##########
 length(which(qc$LRR_SD > 0.35))
@@ -467,7 +452,12 @@ remove(i)
 
 
 
+
 ########## Cleaning CNV Regions ##########
+
+i=1
+
+maf = 0.02
 
 for(i in 1:22){
   mut_0 = apply(chromosomes[[i]],1,cont_0)
@@ -493,8 +483,8 @@ for(i in 1:22){
 }
 
 sizes = c()
-for(x in 1:22){
-  y = dim(chromosomes[[x]])[1]
+for(i in 1:22){
+  y = dim(chromosomes[[i]])[1]
   sizes = c(sizes,y)
 }
 
@@ -646,9 +636,32 @@ remove(cel)
 
 head(info)
 
+kin = info[1:48,c(1,2,3,4,5,8)]
+
+head(kin)  
+
+kin$altura[which(kin$altura<161)] = 0
+kin$altura[which(kin$altura>160)] = 1
+
+kin <- with(kin, pedigree(kin$IID, kin$PAT, kin$MAT, kin$SEX, famid = kin$FID, affected = kin$altura))
+kin
+
+round(8*kinship(kin))/4
+
+
+kin1 = kin['4']
+kin1
+plot(kin1)
+
 info[which(info$cel==1),]
 
 chromosomes[[1]][1:10,1:10]
+
+
+
+
+
+
 
 ########## Getting the files ped and phen ##########
 
@@ -657,11 +670,15 @@ chromosomes[[1]][1:10,1:10]
 ped = cbind(info$IID,info$PAT,info$MAT,info$SEX,info$FID)
 colnames(ped) = c("id","fa","mo","sex","fid")
 
+head(ped)
+
 write.table(ped, "/Users/Ana/Google Drive/2016/files/samples.ped", row.names = F, quote = F, sep = ",")
 
 # .phen
 
 phen = vector("list",22)
+
+j=1
 
 for(j in 1:22){
   fen = c()
