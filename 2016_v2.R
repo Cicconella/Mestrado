@@ -9,6 +9,7 @@ source("http://bioconductor.org/biocLite.R")
 library("CNTools")
 #library(Sushi)
 #library(stargazer)
+library("kinship2")
 
 arruma = function(x){
   x[which(x==1)] = 0
@@ -255,12 +256,14 @@ for(i in 1:22){
 
 
 
+
 ########## BY chromosome ##########
 
 # Find the minimal regions for each chromosome
 
 chromosomes <- vector("list",22)
 
+i=1
 
 for(i in 1:22){
   
@@ -286,7 +289,6 @@ for(i in 1:22){
   seg
   rsByregion <- getRS(seg, by = "region", imput = TRUE, XY = FALSE, what = "max")
   cnvA = rs(rsByregion)
-  head(cnvA)
   cnvA[1:10,1:10]
   
   dim(cnvA)
@@ -301,6 +303,12 @@ remove(cnvA)
 remove(aux)
 remove(rsByregion)
 remove(seg)
+
+for(k in 300:600){
+  print(table(as.numeric(chromosomes[[1]][k,-c(1:3)])))
+}
+
+
 
 
 ##### Testes #####
@@ -634,28 +642,87 @@ remove(cel)
 
 ##### Genotipo e fenotipo #####
 
+
+chromosomes[[1]][1:10,1:10]
+table(as.numeric(chromosomes[[1]][4,-c(1:3)]))
+
+
 head(info)
 
 kin = info[1:48,c(1,2,3,4,5,8)]
 
 head(kin)  
 
+class(kin$altura)
+
 kin$altura[which(kin$altura<161)] = 0
 kin$altura[which(kin$altura>160)] = 1
+
+class(kin$altura)
+table(kin$altura)
+
 
 kin <- with(kin, pedigree(kin$IID, kin$PAT, kin$MAT, kin$SEX, famid = kin$FID, affected = kin$altura))
 kin
 
 round(8*kinship(kin))/4
 
-
-kin1 = kin['4']
+kin1 = kin['2']
 kin1
 plot(kin1)
 
 info[which(info$cel==1),]
 
 chromosomes[[1]][1:10,1:10]
+
+head(info)
+
+chromosomes[[1]][1,1:50]
+
+genotipo = as.numeric(chromosomes[[1]][1,-c(1:3)])
+  
+genotipo = (cbind(colnames(chromosomes[[1]])[-c(1:3)], genotipo))
+
+colnames(genotipo) = c("celfiles", "cnv")
+genotipo = as.data.frame(genotipo)
+head(genotipo)
+
+head(info)
+
+final = merge(info, genotipo, by.x = "cel", by.y = "celfiles", all.x = T)
+final[1:100,]
+tail(final)
+
+head(final)
+
+kin = final[,c(2,3,4,5,6,10)]
+
+head(kin)  
+
+class(kin$cnv)
+
+kin$cnv = as.numeric(as.character(kin$cnv))
+
+
+kin$cnv[which(kin$cnv!=2)] = 1
+kin$cnv[which(kin$cnv==2)] = 0
+kin$cnv[is.na(kin$cnv)] = 0
+
+head(kin)
+
+kin <- with(kin, pedigree(kin$IID, kin$PAT, kin$MAT, kin$SEX, famid = kin$FID, affected = kin$cnv))
+kin
+
+round(8*kinship(kin))/4
+
+unique(kin$famid)
+
+kin1 = kin['110']
+kin1
+plot(kin1)
+
+
+
 
 
 
