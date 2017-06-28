@@ -642,34 +642,10 @@ remove(cel)
 
 ##### Genotipo e fenotipo #####
 
-
 chromosomes[[1]][1:10,1:10]
 table(as.numeric(chromosomes[[1]][4,-c(1:3)]))
 
-
 head(info)
-
-kin = info[1:48,c(1,2,3,4,5,8)]
-
-head(kin)  
-
-class(kin$altura)
-
-kin$altura[which(kin$altura<161)] = 0
-kin$altura[which(kin$altura>160)] = 1
-
-class(kin$altura)
-table(kin$altura)
-
-
-kin <- with(kin, pedigree(kin$IID, kin$PAT, kin$MAT, kin$SEX, famid = kin$FID, affected = kin$altura))
-kin
-
-round(8*kinship(kin))/4
-
-kin1 = kin['2']
-kin1
-plot(kin1)
 
 info[which(info$cel==1),]
 
@@ -679,21 +655,114 @@ head(info)
 
 chromosomes[[1]][1,1:50]
 
-genotipo = as.numeric(chromosomes[[1]][2,-c(1:3)])
+dim(chromosomes[[1]])
+
+seq(1,1239, by=10)
+
+## Seleciona o genotipo
+
+for(c in seq(1,1239, by=10)){
+  genotipo = as.numeric(chromosomes[[1]][c,-c(1:3)])
   
-genotipo = (cbind(colnames(chromosomes[[1]])[-c(1:3)], genotipo))
+  genotipo = (cbind(colnames(chromosomes[[1]])[-c(1:3)], genotipo))
+  
+  colnames(genotipo) = c("celfiles", "cnv")
+  genotipo = as.data.frame(genotipo)
+  head(genotipo)
+  
+  head(info)
+  
+  final = merge(info, genotipo, by.x = "cel", by.y = "celfiles", all.x = T)
+  final[1:100,]
+  tail(final)
+  
+  head(final)
+  
+  comb = expand.grid(c(0:4),c(0:4),c(0:4))
+  comb = data.frame(cbind(comb, rep(0,125)))
+  comb[,4] = as.numeric(as.character(comb[,4]))
+  
+  colnames(comb) = c("P1", "P2", "OF", "CN")
+  
+  head(comb)
+  head(final)
+  
+  for(i in 1:nrow(final)){
+    final[i,]
+    
+    if(is.na(as.character(final[i,10]))){
+      #print("next")
+      next
+    }
+    if(final[i,4]!=0 & final[i,5]!=0){
+      if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
+         | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
+        next
+      }else{
+        a = t(as.matrix(c(as.numeric(as.character(final[which(final[,3]==final[i,4]),10])),
+                          as.numeric(as.character(final[which(final[,3]==final[i,5]),10])),
+                          as.numeric(as.character(final[i,10])))))
+        colnames(a) = colnames(comb)[-4]
+        comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4] = comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4]+1
+      }
+    }else{
+      #print("orfao")
+    }
+  }
+  
+  #png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
+  #barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+  #dev.off()
+  
+  for(i in 1:75){
+    a = t(as.matrix(as.numeric(c(rev(comb[i, 1:2]),comb[i,3]))))
+    colnames(a) = c("P1", "P2","OF")
+    bla = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
+    if(bla!=i){
+      comb[i,4] = comb[i,4]+comb[bla,4]
+      comb = comb[-bla,]
+    }
+  }
+  
+  dim(comb)
+  
+  #png(paste(getwd(),"/trios2.png", sep = ""), width = 1400, height = 460)
+  #barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+  #dev.off()
+  
+  head(comb)
+  
+  if(c == 1){
+    trios = comb
+  }else{
+    trios = cbind(trios,comb[,4])  
+  }
+  print(c)
+}
 
-colnames(genotipo) = c("celfiles", "cnv")
-genotipo = as.data.frame(genotipo)
-head(genotipo)
+head(trios)
+trios[,1:20]
 
-head(info)
+combinacoes = apply(trios[,-(1:3)], 1,sum)
+names(combinacoes) = apply(trios[,1:3],1,paste,collapse="")
+combinacoes_limpo = combinacoes[-which(names(combinacoes)=="222")] 
 
-final = merge(info, genotipo, by.x = "cel", by.y = "celfiles", all.x = T)
-final[1:100,]
-tail(final)
+barplot(combinacoes_limpo, las=2, xlab = "Genotype", ylab = "Absolute frequency",
+        col = "blue", main = "CNV Occurances in Trios")
 
-head(final)
+
+trios[,1:20]
+colnames(trios) = c(colnames(trios)[1:4], rep("CN", 123))
+
+trios[,1:15]
+
+x = cbind(apply(trios[,1:3],1,paste,collapse=""),trios[,4:15])
+colnames(x) = c("CNs", colnames(x)[-1])
+
+stargazer(x, summary = F)
+
+?stargazer
+##### Para ver o heredograma #####
 
 kin = final[,c(2,3,4,5,6,10)]
 
@@ -721,112 +790,27 @@ kin1 = kin['110']
 kin1
 plot(kin1)
 
+kin = info[1:48,c(1,2,3,4,5,8)]
 
-comb = expand.grid(c(0:4),c(0:4),c(0:4))
-comb = apply(comb, 1, paste, collapse="")
-comb = data.frame(cbind(comb, rep(0,125)))
+head(kin)  
 
-comb[,2] = as.numeric(as.character(comb[,2]))
+class(kin$altura)
 
-head(comb)
+kin$altura[which(kin$altura<161)] = 0
+kin$altura[which(kin$altura>160)] = 1
 
-barplot(comb[1:50,2],pch=16)
-barplot(comb[51:100,2],pch=16)
-barplot(comb[101:125,2],pch=16)
-
-head(final)
-
-i=82
+class(kin$altura)
+table(kin$altura)
 
 
-for(i in 1:nrow(final)){
-  final[i,]
-  
-  if(is.na(as.character(final[i,10]))){
-    #print("next")
-    next
-  }
-  if(final[i,4]!=0 & final[i,5]!=0){
-    if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
-       | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
-      #print("nah")
-    }else{
-      a = paste(c(as.character(final[which(final[,3]==final[i,4]),10]),
-                    as.character(final[which(final[,3]==final[i,5]),10]),
-                    as.character(final[i,10])), collapse ="")
-      comb[which(comb[,1]==a),2] = comb[which(comb[,1]==a),2] + 1
-    }
-  }else{
-    #print("orfao")
-  }
-}
-comb
+kin <- with(kin, pedigree(kin$IID, kin$PAT, kin$MAT, kin$SEX, famid = kin$FID, affected = kin$altura))
+kin
 
-png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
-barplot(comb[,2],pch=16, names.arg = comb[,1], las=2)
-dev.off()
+round(8*kinship(kin))/4
 
-comb[1:20,]
-
-
-
-comb = expand.grid(c(0:4),c(0:4),c(0:4))
-comb = data.frame(cbind(comb, rep(0,125)))
-comb[,4] = as.numeric(as.character(comb[,4]))
-
-colnames(comb) = c("P1", "P2", "OF", "CN")
-
-head(comb)
-head(final)
-
-for(i in 1:nrow(final)){
-  final[i,]
-  
-  if(is.na(as.character(final[i,10]))){
-    #print("next")
-    next
-  }
-  if(final[i,4]!=0 & final[i,5]!=0){
-    if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
-       | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
-      next
-    }else{
-      a = t(as.matrix(c(as.numeric(as.character(final[which(final[,3]==final[i,4]),10])),
-                  as.numeric(as.character(final[which(final[,3]==final[i,5]),10])),
-                  as.numeric(as.character(final[i,10])))))
-      colnames(a) = colnames(comb)[-4]
-      comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4] = comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4]+1
-    }
-  }else{
-    #print("orfao")
-  }
-}
-
-png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
-barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
-dev.off()
-
-
-comb[4,1:2]
-
-for(i in 1:75){
-  a = t(as.matrix(as.numeric(c(rev(comb[i, 1:2]),comb[i,3]))))
-  colnames(a) = c("P1", "P2","OF")
-  bla = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
-  if(bla!=i){
-    comb[i,4] = comb[i,4]+comb[bla,4]
-    comb = comb[-bla,]
-  }
-}
-
-comb
-
-png(paste(getwd(),"/trios2.png", sep = ""), width = 1400, height = 460)
-barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
-dev.off()
-
-
-
+kin1 = kin['2']
+kin1
+plot(kin1)
 
 
 ########## Getting the files ped and phen ##########
@@ -904,5 +888,51 @@ for(i in 2:22){
 
 
 rm(name)
+
+# comb = expand.grid(c(0:4),c(0:4),c(0:4))
+# comb = apply(comb, 1, paste, collapse="")
+# comb = data.frame(cbind(comb, rep(0,125)))
+# 
+# comb[,2] = as.numeric(as.character(comb[,2]))
+# 
+# head(comb)
+# 
+# barplot(comb[1:50,2],pch=16)
+# barplot(comb[51:100,2],pch=16)
+# barplot(comb[101:125,2],pch=16)
+# 
+# head(final)
+# 
+# i=82
+# 
+# 
+# for(i in 1:nrow(final)){
+#   final[i,]
+#   
+#   if(is.na(as.character(final[i,10]))){
+#     #print("next")
+#     next
+#   }
+#   if(final[i,4]!=0 & final[i,5]!=0){
+#     if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
+#        | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
+#       #print("nah")
+#     }else{
+#       a = paste(c(as.character(final[which(final[,3]==final[i,4]),10]),
+#                     as.character(final[which(final[,3]==final[i,5]),10]),
+#                     as.character(final[i,10])), collapse ="")
+#       comb[which(comb[,1]==a),2] = comb[which(comb[,1]==a),2] + 1
+#     }
+#   }else{
+#     #print("orfao")
+#   }
+# }
+# comb
+# 
+# png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
+# barplot(comb[,2],pch=16, names.arg = comb[,1], las=2)
+# dev.off()
+# 
+# comb[1:20,]
 
 
