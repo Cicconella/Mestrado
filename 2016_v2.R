@@ -78,12 +78,12 @@ contaMut = function(x){
 }
 
 
-
+getwd()
 
 ########## APT/PennCNV outputs ##########
 
 ### Information about CNV regions
-cnv = read.table("../DadosMestrado/tableCNV", sep="\t", header = F)
+cnv = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/LRR-BAF/tableCNV", sep="\t", header = F)
 colnames(cnv) = c("Chr","Start","End","Number","Length", "State", "CN", "Sample", "First Marker", "Last Marker")
 head(cnv)
 summary(cnv)
@@ -91,7 +91,7 @@ dim(cnv)
 attach(cnv)
 
 ### Information about quality control PennCNV per sample
-qc = read.table("../DadosMestrado/tableQC", sep="\t", header = T)
+qc = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/LRR-BAF/tableQC", sep="\t", header = T)
 qc = qc[order(qc$File),] 
 head(qc)
 summary(qc)
@@ -566,7 +566,7 @@ remove(y)plotar[,2]>125000000
 
 # Sample Data
 
-info = read.table("/home/cicconella/DadosMestrado/dados2", header = T, sep = ",")
+info = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/Project/dados2", header = T, sep = ",")
 
 head(info)  
 summary(info)
@@ -576,7 +576,7 @@ attach(info)
 
 # Association between sample id and celfiles
 
-ind = read.table("/home/cicconella/DadosMestrado/individuos")
+ind = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/Project/individuos")
 colnames(ind) = c("cel", "IID")
 
 class(ind)
@@ -679,7 +679,7 @@ head(info)
 
 chromosomes[[1]][1,1:50]
 
-genotipo = as.numeric(chromosomes[[1]][1,-c(1:3)])
+genotipo = as.numeric(chromosomes[[1]][2,-c(1:3)])
   
 genotipo = (cbind(colnames(chromosomes[[1]])[-c(1:3)], genotipo))
 
@@ -722,9 +722,108 @@ kin1
 plot(kin1)
 
 
+comb = expand.grid(c(0:4),c(0:4),c(0:4))
+comb = apply(comb, 1, paste, collapse="")
+comb = data.frame(cbind(comb, rep(0,125)))
+
+comb[,2] = as.numeric(as.character(comb[,2]))
+
+head(comb)
+
+barplot(comb[1:50,2],pch=16)
+barplot(comb[51:100,2],pch=16)
+barplot(comb[101:125,2],pch=16)
+
+head(final)
+
+i=82
+
+
+for(i in 1:nrow(final)){
+  final[i,]
+  
+  if(is.na(as.character(final[i,10]))){
+    #print("next")
+    next
+  }
+  if(final[i,4]!=0 & final[i,5]!=0){
+    if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
+       | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
+      #print("nah")
+    }else{
+      a = paste(c(as.character(final[which(final[,3]==final[i,4]),10]),
+                    as.character(final[which(final[,3]==final[i,5]),10]),
+                    as.character(final[i,10])), collapse ="")
+      comb[which(comb[,1]==a),2] = comb[which(comb[,1]==a),2] + 1
+    }
+  }else{
+    #print("orfao")
+  }
+}
+comb
+
+png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
+barplot(comb[,2],pch=16, names.arg = comb[,1], las=2)
+dev.off()
+
+comb[1:20,]
 
 
 
+comb = expand.grid(c(0:4),c(0:4),c(0:4))
+comb = data.frame(cbind(comb, rep(0,125)))
+comb[,4] = as.numeric(as.character(comb[,4]))
+
+colnames(comb) = c("P1", "P2", "OF", "CN")
+
+head(comb)
+head(final)
+
+for(i in 1:nrow(final)){
+  final[i,]
+  
+  if(is.na(as.character(final[i,10]))){
+    #print("next")
+    next
+  }
+  if(final[i,4]!=0 & final[i,5]!=0){
+    if(is.na(as.character(final[which(final[,3]==final[i,4]),10]))
+       | is.na(as.character(final[which(final[,3]==final[i,5]),10]))){
+      next
+    }else{
+      a = t(as.matrix(c(as.numeric(as.character(final[which(final[,3]==final[i,4]),10])),
+                  as.numeric(as.character(final[which(final[,3]==final[i,5]),10])),
+                  as.numeric(as.character(final[i,10])))))
+      colnames(a) = colnames(comb)[-4]
+      comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4] = comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4]+1
+    }
+  }else{
+    #print("orfao")
+  }
+}
+
+png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
+barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+dev.off()
+
+
+comb[4,1:2]
+
+for(i in 1:75){
+  a = t(as.matrix(as.numeric(c(rev(comb[i, 1:2]),comb[i,3]))))
+  colnames(a) = c("P1", "P2","OF")
+  bla = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
+  if(bla!=i){
+    comb[i,4] = comb[i,4]+comb[bla,4]
+    comb = comb[-bla,]
+  }
+}
+
+comb
+
+png(paste(getwd(),"/trios2.png", sep = ""), width = 1400, height = 460)
+barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+dev.off()
 
 
 
