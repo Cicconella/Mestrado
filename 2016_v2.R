@@ -265,7 +265,7 @@ chromosomes <- vector("list",22)
 
 i=1
 
-for(i in 1:22){
+#for(i in 1:22){
   
   cnvA = cnv[Chr==i,]
   dim(cnvA)
@@ -297,19 +297,13 @@ for(i in 1:22){
   chromosomes[[i]] = cnvA
   
 
-}
+
+  #}
 
 remove(cnvA)
 remove(aux)
 remove(rsByregion)
 remove(seg)
-
-for(k in 300:600){
-  print(table(as.numeric(chromosomes[[1]][k,-c(1:3)])))
-}
-
-
-
 
 ##### Testes #####
 
@@ -467,7 +461,7 @@ i=1
 
 maf = 0.02
 
-for(i in 1:22){
+#for(i in 1:22){
   mut_0 = apply(chromosomes[[i]],1,cont_0)
   mut_1 = apply(chromosomes[[i]],1,cont_1)
   mut_2 = apply(chromosomes[[i]],1,cont_2)
@@ -488,13 +482,13 @@ for(i in 1:22){
   dim(chromosomes[[i]])
   head(chromosomes[[i]][,1:15])
   print(i)
-}
+#}
 
-sizes = c()
-for(i in 1:22){
-  y = dim(chromosomes[[i]])[1]
-  sizes = c(sizes,y)
-}
+# sizes = c()
+# for(i in 1:22){
+#   y = dim(chromosomes[[i]])[1]
+#   sizes = c(sizes,y)
+# }
 
 
 ########## Cleaning CNV Regions - Binary##########
@@ -647,21 +641,9 @@ table(as.numeric(chromosomes[[1]][4,-c(1:3)]))
 
 head(info)
 
-info[which(info$cel==1),]
-
-chromosomes[[1]][1:10,1:10]
-
-head(info)
-
-chromosomes[[1]][1,1:50]
-
-dim(chromosomes[[1]])
-
-seq(1,1239, by=10)
-
 ## Seleciona o genotipo
 
-for(c in seq(1,1239, by=10)){
+for(c in 1:nrow(chromosomes[[1]])){
   genotipo = as.numeric(chromosomes[[1]][c,-c(1:3)])
   
   genotipo = (cbind(colnames(chromosomes[[1]])[-c(1:3)], genotipo))
@@ -674,15 +656,13 @@ for(c in seq(1,1239, by=10)){
   
   final = merge(info, genotipo, by.x = "cel", by.y = "celfiles", all.x = T)
   final[1:100,]
-  tail(final)
-  
-  head(final)
   
   comb = expand.grid(c(0:4),c(0:4),c(0:4))
   comb = data.frame(cbind(comb, rep(0,125)))
   comb[,4] = as.numeric(as.character(comb[,4]))
   
   colnames(comb) = c("P1", "P2", "OF", "CN")
+  fam = rep(NA,125)
   
   head(comb)
   head(final)
@@ -691,7 +671,6 @@ for(c in seq(1,1239, by=10)){
     final[i,]
     
     if(is.na(as.character(final[i,10]))){
-      #print("next")
       next
     }
     if(final[i,4]!=0 & final[i,5]!=0){
@@ -702,8 +681,18 @@ for(c in seq(1,1239, by=10)){
         a = t(as.matrix(c(as.numeric(as.character(final[which(final[,3]==final[i,4]),10])),
                           as.numeric(as.character(final[which(final[,3]==final[i,5]),10])),
                           as.numeric(as.character(final[i,10])))))
+        b = as.numeric(as.character(final[i,2]))      
         colnames(a) = colnames(comb)[-4]
-        comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4] = comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4]+1
+        aux = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
+        comb[aux,4] = comb[aux,4]+1
+        print(i)
+        
+        if(is.na(fam[aux])){
+          fam[aux] = b
+        }else{
+          fam[aux] = paste(fam[aux],b)
+        }
+        
       }
     }else{
       #print("orfao")
@@ -713,6 +702,7 @@ for(c in seq(1,1239, by=10)){
   #png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
   #barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
   #dev.off()
+  length(fam)
   
   for(i in 1:75){
     a = t(as.matrix(as.numeric(c(rev(comb[i, 1:2]),comb[i,3]))))
@@ -720,7 +710,9 @@ for(c in seq(1,1239, by=10)){
     bla = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
     if(bla!=i){
       comb[i,4] = comb[i,4]+comb[bla,4]
+      fam[i] = paste(fam[i], fam[bla])
       comb = comb[-bla,]
+      fam = fam[-bla]
     }
   }
   
@@ -734,34 +726,43 @@ for(c in seq(1,1239, by=10)){
   
   if(c == 1){
     trios = comb
+    fam_trios = fam
   }else{
-    trios = cbind(trios,comb[,4])  
+    trios = cbind(trios,comb[,4])
+    fam_trios = cbind(fam_trios,fam)
   }
   print(c)
 }
 
+colnames(trios) = c(colnames(trios)[1:4], rep("CN", ncol(trios)-4))
 head(trios)
-trios[,1:20]
+trios[,1:10]
+dim(trios)
+dim(fam_trios)
 
 combinacoes = apply(trios[,-(1:3)], 1,sum)
 names(combinacoes) = apply(trios[,1:3],1,paste,collapse="")
 combinacoes_limpo = combinacoes[-which(names(combinacoes)=="222")] 
 
+combinacoes[40]
+fam_trios[40,1:3]
+
+write.table(trios, "triosCNV",row.names = F, quote = F)
+write.table(fam_trios, "fam_trios",row.names = F, quote = F)
+
+png(paste(getwd(),"/triosChr1.png", sep = ""), width = 1400, height = 460)
 barplot(combinacoes_limpo, las=2, xlab = "Genotype", ylab = "Absolute frequency",
         col = "blue", main = "CNV Occurances in Trios")
-
-
-trios[,1:20]
-colnames(trios) = c(colnames(trios)[1:4], rep("CN", 123))
+dev.off()
 
 trios[,1:15]
+apply(trios[,1:10], 2, sum)
 
 x = cbind(apply(trios[,1:3],1,paste,collapse=""),trios[,4:15])
 colnames(x) = c("CNs", colnames(x)[-1])
 
 stargazer(x, summary = F)
 
-?stargazer
 ##### Para ver o heredograma #####
 
 kin = final[,c(2,3,4,5,6,10)]
