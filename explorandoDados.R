@@ -80,3 +80,13 @@ boxplot(final$CIRCABD~final$cnv)
 
 table(final$SEX,final$cnv)
 
+
+
+
+
+
+
+
+
+
+chromosomes[[1]][,1:10]
