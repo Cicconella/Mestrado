@@ -31,9 +31,6 @@ barplot(table(Chr.x))
 
 ##### Comparando CNV #####
 
-novo = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/novo.rawcnv", header = T, sep="\t")
-antigo = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado-Antigo/", header = T, sep="\t")
-
-
-
+cnv = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/tableCNV", header = F, sep="\t")
+head(cnv)
 

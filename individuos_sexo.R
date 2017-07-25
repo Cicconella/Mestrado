@@ -79,4 +79,18 @@ table(completo[,c(2,7)])
 
 cel_errados = c(completo[which(completo[,2]=="female" & completo[,7]==1),1],completo[which(completo[,2]=="male" & completo[,7]==2),1])
 
+dim(info)
+length(unique(info$FID))
+
+a = info[which(info$GENOTIPADO==1),]
+dim(a)
+length(unique(a[,1]))
+
+head(a)
+b = merge(a,qc, by.x = "cel", by.y = "File")
+head(b)
+dim(b)
+length(unique(b[,2]))
+table(b[,2])[table(b[,2])<3]
+
 
