@@ -9,6 +9,7 @@ source("http://bioconductor.org/biocLite.R")
 library("CNTools")
 #library(Sushi)
 #library(stargazer)
+install.packages("kinship2")
 library("kinship2")
 
 arruma = function(x){

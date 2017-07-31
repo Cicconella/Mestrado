@@ -62,35 +62,27 @@ attach(info)
 
 head(info)
 
-write.table(info, "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", row.names = F)
+write.table(info, "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", 
+            row.names = F)
 
 ##### Conferindo com o identificado #####
 
-head(info)
+infos = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", 
+                   header=T)
+
+head(infos)
 head(sexo)
 
 sexo$cel = as.numeric(as.character(sexo$cel))
 
-completo = merge(sexo, info, by.x = "cel", by.y = "cel")
+completo = merge(sexo, infos, by.x = "cel", by.y = "cel")
 
 head(completo)
 
 table(completo[,c(2,7)])
 
-cel_errados = c(completo[which(completo[,2]=="female" & completo[,7]==1),1],completo[which(completo[,2]=="male" & completo[,7]==2),1])
+cel_errados = c(completo[which(completo[,2]=="female" & completo[,7]==1),1],
+                completo[which(completo[,2]=="male" & completo[,7]==2),1])
 
-dim(info)
-length(unique(info$FID))
-
-a = info[which(info$GENOTIPADO==1),]
-dim(a)
-length(unique(a[,1]))
-
-head(a)
-b = merge(a,qc, by.x = "cel", by.y = "File")
-head(b)
-dim(b)
-length(unique(b[,2]))
-table(b[,2])[table(b[,2])<3]
-
-
+write.table(cel_errados, "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/errados", 
+            row.names = F, col.names = F)
