@@ -22,28 +22,38 @@ dim(qc)
 
 ### LRR_SD
 
+png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/lrr_sd.png")
 hist(qc$LRR_SD, nc = 100, col="blue", xlab = "LRR Standard Deviation", 
      main = "" )
+dev.off()
 
 length(which(qc$LRR_SD > 0.35))
 
 ### BAF_Mean
+
+
 length(which(qc$BAF_mean > 0.6))+length(which(qc$BAF_mean < 0.4))
 
+png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/baf_mean.png")
 hist(qc$BAF_mean, nc = 100, col="blue", xlab = "BAF Mean", 
      main = "" )
+dev.off()
 
 ### BAF_Drif
 
 length(which(qc$BAF_drift > 0.01))
 
+png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/baf_drift.png")
 hist(qc$BAF_drift, nc = 100, col="blue", xlab = "BAF Drift", 
      main = "" )
+dev.off()
 
 ### WF
 
+png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/wf.png")
 hist(qc$WF, nc = 100, col="blue", xlab = "BAF Drift", 
      main = "" )
+dev.off()
 
 length(which(qc$WF > 0.04))+length(which(qc$WF < -0.04))
 
@@ -77,6 +87,7 @@ length(ind)
 infos = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", header=T)
 head(infos)
 
+#Classificados errados pelo PennCNV
 errados = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/errados")
 
 dim(infos)
@@ -85,7 +96,8 @@ length(unique(infos$FID))
 #Apenas os genotipados
 a = infos[which(infos$GENOTIPADO==1),]
 dim(a)
-length(unique(a[,1]))
+head(a)
+length(unique(a[,1])) #familias
 
 #Com qualidade
 head(a)
@@ -93,8 +105,6 @@ b = merge(a, qc, by.x = "cel", by.y = "File")
 head(b)
 dim(b)
 length(unique(b[,2]))
-
-
 
 #So para checar quais são os individuos que sairam e tinha problema na estimativa do sexo
 t = c()
@@ -167,4 +177,9 @@ head(d)
 tail(d)
 length(unique(d[,2]))
 sort(unique(d[,2]))
+
+write.table(d, "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/ind_limpos",
+            row.names = F)
+
+
 
