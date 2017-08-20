@@ -1,7 +1,6 @@
-#Download file from Dropbox
+dir = "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado"
 
-a = read.table("../tableCNV")
-
+a = read.table(paste(dir,"/tableCNV", sep=""))
 head(a)
 
 colnames(a) = c("Chr", "Begin", "End", "NumberSNPs", "Size", "State", "CN",
@@ -16,7 +15,7 @@ print(paste("Total de amostras:", length(unique(Sample))))
 summary(as.numeric(table(Sample)))
 sd(as.numeric(table(Sample)))
 
-png("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/numberCNVs.png")
+png(paste(dir, "/numberCNVs.png", sep=""))
 hist(table(Sample), nc = 1000, main = "Number of CNVs per sample", xlab = "Number of CNVs")
 dev.off()
 
@@ -33,7 +32,7 @@ for(i in seq(0,4000, by =25)){
 
 porcentagens
 
-png("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/samplesSize.png")
+png(paste(dir, "/samplesSize.png", sep=""))
 plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
 lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
 dev.off()
@@ -48,13 +47,14 @@ hist(Size, nc=100)
 mean(Size)
 medias = aggregate(Size, by = list(Sample), FUN=mean)
 
-png("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/sizeCNVs.png")
+png(paste(dir, "/sizeCNVs.png", sep=""))
 barplot(medias[,2], xlab = "Sample", ylab = "Mean length of CNVs")
 dev.off()
 
 as.numeric(which(table(Sample)>75))
 
-png("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/lenghtByNumber.png")
+
+png(paste(dir, "/lenghtByNumber.png", sep=""))
 plot(as.numeric(table(Sample)),medias[,2], pch=".", xlab = "Number of CNVs",
      ylab = "Mean length of CNVs")
 dev.off()
@@ -62,7 +62,7 @@ dev.off()
 
 ##### By chromosome
 
-png("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/chrCNV.png")
+png(paste(dir, "/chrCNV.png", sep=""))
 plot(table(Chr), xlab = "Chromosome", ylab = "Number of CNVs", cex.axis=0.75, 
      main = "CNV regions per Chromosome")
 dev.off()
@@ -70,7 +70,7 @@ dev.off()
 minimos = aggregate(Begin, by = list(Chr), FUN=min)
 maximos = aggregate(Begin, by = list(Chr), FUN=max)
 
-tamanhos = read.table("/media/cicconella/8AA6013CA6012A71/Documents and Settings/Nina/Dropbox/Mestrado/CNV-Est/tamanhos")
+tamanhos = read.table(paste(dir,"/tamanhos", sep=""))
 
 cbind(tamanhos, maximos)
 

@@ -114,7 +114,7 @@ length(which(qc$WF > 0.04))+length(which(qc$WF < -0.04))
 
 fail1 = intersect(which(qc$LRR_SD > 0.35), which(qc$BAF_drift > 0.01))
 fail2 = intersect(which(qc$LRR_SD > 0.35), which(qc$WF > 0.04))
-fail3 = intersect(which(qc$LRR_SD > 0.35), which(qc$WF < 0.04))
+fail3 = intersect(which(qc$LRR_SD > 0.35), which(qc$WF < -0.04))
 
 head(cnv)
 dim(cnv)

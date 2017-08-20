@@ -18,11 +18,45 @@ summary(qc)
 dim(qc)
 
 ########## Cleaning Bad Samples ##########
-fail1 = intersect(which(qc$LRR_SD > 0.35), which(qc$BAF_drift > 0.01))
-fail2 = intersect(which(qc$LRR_SD > 0.35), which(qc$WF > 0.04))
-fail3 = intersect(which(qc$LRR_SD > 0.35), which(qc$WF < 0.04))
 
-fail = c(fail2,fail3)
+
+### LRR_SD
+
+hist(qc$LRR_SD, nc = 100, col="blue", xlab = "LRR Standard Deviation", 
+     main = "" )
+
+length(which(qc$LRR_SD > 0.35))
+
+### BAF_Mean
+length(which(qc$BAF_mean > 0.6))+length(which(qc$BAF_mean < 0.4))
+
+hist(qc$BAF_mean, nc = 100, col="blue", xlab = "BAF Mean", 
+     main = "" )
+
+### BAF_Drif
+
+length(which(qc$BAF_drift > 0.01))
+
+hist(qc$BAF_drift, nc = 100, col="blue", xlab = "BAF Drift", 
+     main = "" )
+
+### WF
+
+hist(qc$WF, nc = 100, col="blue", xlab = "BAF Drift", 
+     main = "" )
+
+length(which(qc$WF > 0.04))+length(which(qc$WF < -0.04))
+
+fail1 = which(qc$LRR_SD > 0.35)
+fail1
+fail2 = which(qc$BAF_drift > 0.01)
+fail2
+fail3 = which(qc$WF > 0.04)
+fail3
+fail4 = which(qc$WF < -0.04)
+fail4
+
+fail = unique(c(fail1, fail2, fail3, fail4))
 
 qc = qc[-fail,]
 dim(qc)
@@ -130,6 +164,7 @@ for(i in semR)
 
 dim(d)
 head(d)
+tail(d)
 length(unique(d[,2]))
 sort(unique(d[,2]))
 
