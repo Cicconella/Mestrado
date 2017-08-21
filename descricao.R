@@ -1,3 +1,5 @@
+##### Dados CNV #####
+
 dir = "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado"
 
 a = read.table(paste(dir,"/tableCNV", sep=""))
@@ -5,8 +7,25 @@ head(a)
 
 colnames(a) = c("Chr", "Begin", "End", "NumberSNPs", "Size", "State", "CN",
                 "Sample", "FirstMarker", "LastMarker")
+
+##### Individuos Limpos #####
+
+ind = read.table(paste(dir,"/ind_limpos", sep=""), header=T)
+head(ind)
+
+individuos = ind$cel
+individuos = as.data.frame(individuos)
+head(individuos)
+head(a)
+dim(a)
+
+a = merge(a, individuos, by.x = "Sample", by.y = "individuos")
+head(a)
+dim(a)
+
 attach(a)
 head(a)
+
 
 ##### Samples #####
 Sample
@@ -24,6 +43,11 @@ paste(length(which(table(Sample)>500))/length(unique(Sample)), "são maiores que
 paste(length(which(table(Sample)>250))/length(unique(Sample)), "são maiores que 250")
 paste(length(which(table(Sample)>100))/length(unique(Sample)), "são maiores que 100")
 
+table(Sample)
+summary(as.numeric(table(Sample)))
+
+summary(table(Sample))
+
 porcentagens = c()
 
 for(i in seq(0,4000, by =25)){
@@ -32,10 +56,16 @@ for(i in seq(0,4000, by =25)){
 
 porcentagens
 
+
 png(paste(dir, "/samplesSize.png", sep=""))
 plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
 lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
 dev.off()
+
+
+cbind(seq(0,4000, by =25), porcentagens)
+
+print(paste("% de pessoas com menos de 100 CNVs:", 1-porcentagens[5]))
 
 ##### Size
 
@@ -74,5 +104,5 @@ tamanhos = read.table(paste(dir,"/tamanhos", sep=""))
 
 cbind(tamanhos, maximos)
 
-source("https://bioconductor.org/biocLite.R")
-biocLite("Gviz")
+
+
