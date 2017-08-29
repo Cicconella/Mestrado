@@ -1,3 +1,85 @@
+
+########## Functions ##########
+
+options(useHTTPS=FALSE, BioC_mirror="http://bioconductor.org")
+source("http://bioconductor.org/biocLite.R")
+#biocLite("CNTools")
+#biocLite("Sushi")
+library("CNTools")
+library(Sushi)
+library(stargazer)
+library("kinship2")
+
+arruma = function(x){
+  x[which(x==1)] = 0
+  x[which(x==2)] = 1
+  x[which(x==-1)] = 2
+  x[which(x==5)] = 3
+  x[which(x==6)] = 4
+  return(x)
+}
+
+cont_0 = function(x){
+  length(which(x[-c(1,2,3)]==0))
+}
+
+cont_1 = function(x){
+  length(which(x[-c(1,2,3)]==1))
+}
+
+cont_2 = function(x){
+  length(which(x[-c(1,2,3)]==2))
+}
+
+cont_3 = function(x){
+  length(which(x[-c(1,2,3)]==3))
+}
+cont_4 = function(x){
+  length(which(x[-c(1,2,3)]==4))
+}
+
+
+grupos = function(a){
+  t = sum(a)
+  g = 5
+  
+  if(a[1]<t*maf)
+    g = g-1
+  if(a[2]<t*maf)
+    g = g-1
+  if(a[3]<t*maf)
+    g = g-1
+  if(a[4]<t*maf)
+    g = g-1
+  if(a[5]<t*maf)
+    g = g-1
+  
+  return(g)
+}
+
+
+
+group = function(a){
+  t = sum(a)
+  g = 2
+  
+  if(a[1]<t*maf)
+    g = g-1
+  if(a[2]<t*maf)
+    g = g-1
+  
+  return(g)
+}
+
+
+contaMut = function(x){
+  return(length(which(x!=2))-3)
+}
+
+
+getwd()
+
+
 ##### Dados CNV #####
 
 dir = "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado"
@@ -50,59 +132,313 @@ summary(table(Sample))
 
 porcentagens = c()
 
-for(i in seq(0,4000, by =25)){
-  porcentagens = c(porcentagens, length(which(table(Sample)>i))/length(unique(Sample)))
+for(i in seq(0,3000, by =25)){
+  porcentagens = c(porcentagens, length(which(table(Sample)<i))/length(unique(Sample)))
 }
 
-porcentagens
 
+porcentagens
 
 png(paste(dir, "/samplesSize.png", sep=""))
 plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
 lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
 dev.off()
 
+bla = cbind(seq(0,3000, by =25), porcentagens)
 
-cbind(seq(0,4000, by =25), porcentagens)
+print(paste("% de pessoas com menos de 100 CNVs:", porcentagens[5]))
 
-print(paste("% de pessoas com menos de 100 CNVs:", 1-porcentagens[5]))
+stargazer(bla, digits = 2)
 
-##### Size
+head(a)
 
-Size
+png(paste(dir, "/absCNV.png", sep=""))
+barplot(table(CN)/sum(table(CN)), col = "blue", xlab = "Copy Number", 
+        ylab = "Frequency (%)", main = "Frequency of Copy Number",
+        ylim = c(0,0.7))
+dev.off()
+
+table(CN)/sum(table(CN))
+
+which(table(Sample)<101)
+names(which(table(Sample)<101))
+
+boxplot(as.numeric(table(Sample)[table(Sample)<101]), col = "lightblue")
+
+bla = a[a$Sample %in% names(which(table(Sample)<101)),]
+
+bla[1:100,]
+
+png(paste(dir, "/absCNV100.png", sep=""))
+barplot(table(bla$CN)/sum(table(bla$CN)), col = "blue", xlab = "Copy Number", 
+        ylab = "Frequency (%)", main = "Frequency of Copy Number",
+        ylim = c(0,0.7))
+dev.off()
+
+table(bla$CN)/sum(table(bla$CN))
+
+
+##### Size #####
+head(a)
+
 summary(Size)
 
 hist(Size, nc=100)
+barplot(table(Size))
 
 mean(Size)
-medias = aggregate(Size, by = list(Sample), FUN=mean)
+summary(Size)
 
-png(paste(dir, "/sizeCNVs.png", sep=""))
-barplot(medias[,2], xlab = "Sample", ylab = "Mean length of CNVs")
+data = Size
+
+png(paste(dir, "/totalLength.png", sep=""))
+hist(log10(data), nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", ylim = c(0,6000))
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
 dev.off()
 
-as.numeric(which(table(Sample)>75))
+head(a)
 
+png(paste(dir, "/totalDel.png", sep=""))
+hist(log10(Size[a$CN<2]), 
+     nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
+     col="blue", main = "Histogram of Deletions Length", ylim = c(0,6000))
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+dev.off()
 
-png(paste(dir, "/lenghtByNumber.png", sep=""))
-plot(as.numeric(table(Sample)),medias[,2], pch=".", xlab = "Number of CNVs",
-     ylab = "Mean length of CNVs")
+png(paste(dir, "/totalDup.png", sep=""))
+hist(log10(Size[a$CN>2]), 
+     nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
+     col="blue", main = "Histogram of Duplications Length", ylim = c(0,6000))
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
 dev.off()
 
 
-##### By chromosome
+########## BY chromosome ##########
 
-png(paste(dir, "/chrCNV.png", sep=""))
-plot(table(Chr), xlab = "Chromosome", ylab = "Number of CNVs", cex.axis=0.75, 
-     main = "CNV regions per Chromosome")
+head(a)
+head(ind)
+
+# Find the minimal regions for each chromosome
+
+chromosomes <- vector("list",22)
+
+i=1
+
+for(i in 1:22){
+  
+  cnvA = a[Chr==i,]
+  dim(cnvA)
+  head(cnvA)
+  aux = cnvA[order(cnvA$Begin),]
+  dim(aux)
+  head(aux)
+  
+  # Change matrix to data.frame and add an auxiliar region from the start of the 
+  # chromossome
+  
+  aux <- data.frame(c(aux$Sample,unique(Sample)), c(aux$Chr,rep(i, nrow(ind))), 
+                    c(aux$Begin,rep(1, nrow(ind))), c(aux$End,rep(max(aux$End), nrow(ind))), 
+                    c(aux$Number,rep(1, nrow(ind))), c(aux$State,rep(-1, nrow(ind))))
+  colnames(aux) = c("ID", "chrom", "loc.start", "loc.end", "num.mark",  "seg.mean")
+  str(aux)
+  head(aux)
+  dim(aux)
+  
+  seg <-  CNSeg(aux)
+  seg
+  rsByregion <- getRS(seg, by = "region", imput = TRUE, XY = FALSE, what = "max")
+  cnvA = rs(rsByregion)
+  cnvA[1:10,1:10]
+  
+  dim(cnvA)
+  cnvA = cbind(cnvA[,1:3],apply(cnvA[,-c(1:3)],2,arruma))
+  
+  chromosomes[[i]] = cnvA
+  
+  
+}
+
+remove(cnvA)
+remove(aux)
+remove(rsByregion)
+remove(seg)
+
+#for(k in 300:600){
+#  print(table(as.numeric(chromosomes[[1]][k,-c(1:3)])))
+#}
+
+total = 0
+
+for(i in 1:22){
+ total = total + dim(chromosomes[[i]])[1]  
+}
+
+head(a)
+
+dim(a)
+
+##### CNVs, onde estao? #####
+
+table(a$Chr)
+barplot(table(a$Chr), xlab = "Chromosome", names.arg=c(1:22),col="blue", cex.names  = 0.75,
+        main = "CNVs detected by Chromosome", ylab = "Absolute frequency")
+
+
+tamanhos = read.table(paste(dir, "/tamanhos", sep=""), header = F, sep = "\t")
+head(tamanhos)
+
+prop = c()
+prop2 = c()
+
+i=1
+
+for(i in 1:22){
+  
+  if(i!=2){
+    plotar = cbind(chromosomes[[i]][,1:3], apply(chromosomes[[i]], 1, contaMut))  
+  } else{
+    plotar = cbind(chromosomes[[i]][,1:3], (apply(chromosomes[[i]], 1, contaMut)+1))    
+  }
+  
+  
+  plotar = as.data.frame(plotar)
+  colnames(plotar) = c("chrom", "start", "end", "score")
+  
+  plotar[,1] = paste("chr",i, sep="")
+  
+  chrom = plotar[1,1]
+  chromstart = chromosomes[[i]][1,2]
+  chromend = chromosomes[[i]][nrow(chromosomes[[i]]),3]
+  
+  # png(paste(dir, "/Sushi/chr",i,".png", sep=""))
+  # plotBedgraph(plotar, chrom, chromstart,
+  #              chromend, main = "CNVs per region (910 samples)",
+  #              colorbycol= SushiColors(5), range = c(0,910))
+  # 
+  # labelgenome(chrom, chromstart,chromend,n=4,scale="Mb")
+  # mtext("Number of CNVs",side=2,line=2.5,cex=1,font=2)
+  # axis(side=2,las=2,tcl=.2)
+  # dev.off()
+  
+  print(i)
+  
+  
+  bla = plotar$end-plotar$start+1
+  bla = sum(bla[which(plotar$score!=0)])
+  
+  prop = c(prop, bla/tamanhos$V2[i])
+  
+  bla = plotar$end-plotar$start+1
+  bla = sum(bla[which(plotar$score>20)])
+  
+  prop2 = c(prop2, bla/tamanhos$V2[i])
+  
+}
+
+##### Teste #####
+
+# head(plotar)
+# 
+# x=which(plotar$score==max(plotar$score))
+# 
+# plotar[(x-20):(x+20),]
+# plotar[(x-12):(x+10),]
+# mean(plotar[(x-12):(x+10),4])
+# 
+# chromosomes[[i]][x,1:3]
+# contaMut(chromosomes[[i]][x,1:3])
+# 
+# stargazer(as.numeric(table(as.numeric(chromosomes[[i]][x,-(1:3)]))))
+# 
+# teste = 764792
+# teste2 =802515
+# plotar$start-764792
+# 
+# plotar[20,]
+
+
+sizesT= c()
+for(x in 1:22){
+  y = dim(chromosomes[[x]])[1]
+  sizesT = c(sizesT,y)
+}
+
+png(paste(dir,"/plots/before.png", sep=""))
+plot(1:22,sizesT, xlab="Chromosomes", ylab="Number of CNV Regions", 
+     main = "CNV Regions before Cleaning",pch=16)
 dev.off()
 
-minimos = aggregate(Begin, by = list(Chr), FUN=min)
-maximos = aggregate(Begin, by = list(Chr), FUN=max)
+########## Cleaning CNV Regions ##########
 
-tamanhos = read.table(paste(dir,"/tamanhos", sep=""))
+i=1
 
-cbind(tamanhos, maximos)
+maf = 0.5
+
+for(i in 1:22){
+  mut_0 = apply(chromosomes[[i]],1,cont_0)
+  mut_1 = apply(chromosomes[[i]],1,cont_1)
+  mut_2 = apply(chromosomes[[i]],1,cont_2)
+  mut_3 = apply(chromosomes[[i]],1,cont_3)
+  mut_4 = apply(chromosomes[[i]],1,cont_4)
+  
+  mutations = cbind(mut_0,mut_1,mut_2,mut_3,mut_4)
+  
+  dim(chromosomes[[i]])
+  dim(mutations)
+  
+  groupCNV = apply(mutations, 1, grupos)
+  
+  summary(as.factor(groupCNV))
+  
+  exclude = which(groupCNV==1)
+  chromosomes[[i]] = chromosomes[[i]][-exclude,]
+  dim(chromosomes[[i]])
+  head(chromosomes[[i]][,1:15])
+  print(i)
+}
+
+sizes = c()
+for(i in 1:22){
+  y = dim(chromosomes[[i]])[1]
+  sizes = c(sizes,y)
+}
+
+sum(sizes)
+
+
+png(paste(dir, "/plots/before2.png", sep=""))
+plot(1:22,sizes, xlab="Chromosomes", ylab="Number of CNV Regions", 
+     main = "CNV Regions after Cleaning",pch=16)
+dev.off()
+
+
+bla = rbind(cbind(1:22,sizes),cbind(1:22,sizesT))
+
+png(paste(dir, "/plots/CNVnumber.png", sep=""))
+plot(bla, xlab="Chromosomes", ylab="Number of CNVs", 
+     main = "Number of CNVs", pch=16, col = c(rep("blue", 22),rep("red", 22)))
+legend("topright", c("Before cleaning", "After cleaning"), col = c("red", "blue"), pch=16)
+dev.off()
+
+
+for(i in 1:22)
+  write.table(chromosomes[[i]], paste(dir, "/Cromossomos/cromo",i, sep=""), row.names = F)
+
+
+
+##### 1000Genomes
+
+
+c1 = read.table(paste(dir, "/1000genomes/c1", sep=""), header = T)
+
+head(c1)
+
+cnv = read.table(paste("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/Cromossomos/cromo", 1, sep=""), header = T)
+cnv[1:10,1:10]
+
+head(c1)
+
+
 
 
 
