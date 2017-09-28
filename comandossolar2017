@@ -1,0 +1,85 @@
+
+# Para quando estamos na pasta do Chromossomo 
+
+load pedigree ../samples.ped
+load phenotypes cn.phen
+
+set fp [open files]
+
+while {{} != [set trt [gets $fp]]} {
+
+	model new
+	trait altura
+	covariates $trt sex Idade
+	polygenic -screen
+	
+	file rename -force -- /home/cicconella/solar831/Chr3/altura/polygenic.out /home/cicconella/solar831/Chr3/altura/resultados/$trt
+}
+
+# Criar as funcoes para carregar no solar. Ex: ./solar nome_da_funcao
+
+for i in {1..22}; do echo -e "proc altura-cnvs-$i {} {\nload pedigree ../samples.ped\nload phenotypes cn.phen\n	set fp [open files]\n\nwhile {{} != [set trt [gets \$fp]]} {\n	model new\n	trait altura\n	covariates \$trt sex Idade \n	polygenic -screen\n		file rename -force -- /home/cicconella/solar831/Chr$i/altura/polygenic.out /home/cicconella/solar831/Chr$i/altura/resultados/\$trt \n }\n}" >Chr$i/altura-cnvs-$i.tcl; done
+
+# Criei uma pasta chamada resultados (script para criar as pastas)
+for i in {5..22}; do echo -e "cd Chr$i \n mkdir altura \n cd altura \n mkdir resultados \n cd ../../"; done > criaResultados.sh 
+
+# Criei um script para rodar as funcoes do solar automaticamente 
+for i in {4,7,10,13,16,19,22}; do echo -e "cd Chr$i \n ./../solar altura-cnvs$i \n cd ../"; done > grupo1.sh
+
+
+# Criei uma pasta chamada resultados (script para criar as pastas)
+for i in {1..22}; do echo -e "cd Chr$i \n mkdir CNVs \n cd CNVs \n mkdir resultados \n cd ../../"; done > criaResultados.sh 
+
+model new
+trait CN2
+covariates sex Idade
+polygenic -screen
+
+load pedigree ../samples.ped
+load phenotypes cnBin.phen
+model new
+trait CN1
+covariates sex Idade
+polygenic -screen
+
+
+for i in {1..22}; do echo -e "proc cnvs-$i {} {\nload pedigree ../samples.ped\nload phenotypes cnBin.phen\n	set fp [open files]\n\nwhile {{} != [set trt [gets \$fp]]} {\n	model new\n	trait \$trt \n	covariates  sex Idade \n	polygenic -screen\n		file rename -force -- /home/cicconella/solar831/Chr$i/\$trt/polygenic.out /home/cicconella/solar831/Chr$i/CNVs/resultados/\$trt \n }\n}" >Chr$i/cnvs-$i.tcl; done
+
+# Criei um script para rodar as funcoes do solar automaticamente 
+for i in {1,4,7,10}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo4.sh
+
+for i in {2,5,8,11}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo5.sh
+
+for i in {3,6,9,12}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo6.sh
+
+for i in {10,14,17,20}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo7.sh
+
+for i in {12,15,18,21}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo8.sh
+
+for i in {13,16,19,22}; do echo -e "cd Chr$i \n ./../solar cnvs-$i \n cd ../"; done > grupo9.sh
+
+#Pegar herdabilidades
+   
+grep "H2r is" * > herdabilidades
+
+for i in {2..22}; do echo -e "cd Chr$i/altura/resultados \n grep \"H2r is\" * > herdabilidades \n cd ../../../"; done > pegaHerdabilidades.sh
+
+for i in {2..22}; do echo -e "cd Chr$i/altura/resultados \n egrep \"CN[0-9]{1,3}  p\" * > p-values \n cd ../../../"; done > pegaP.sh
+
+egrep "CN[0-9]{1,3}  p" CN* > p-values
+
+
+for i in {2..22}; do echo -e "cd Chr$i/CNVs/resultados \n grep \"H2r is\" * > herdabilidades \n cd ../../../"; done > pegaHerdabilidades2.sh
+
+for i in {1..22}; do echo -e "proc cnvs-semcov-$i {} {\nload pedigree ../samples.ped\nload phenotypes cnBin.phen\n	set fp [open files]\n\nwhile {{} != [set trt [gets \$fp]]} {\n	model new\n	trait \$trt \n	polygenic -screen\n		file rename -force -- /home/cicconella/solar831/Chr$i/\$trt/polygenic.out /home/cicconella/solar831/Chr$i/CNVs/resultados2/\$trt \n }\n}" >Chr$i/cnv-semcov-$i.tcl; done
+
+for i in {1..22}; do echo -e "cd Chr$i \n cd CNVs \n mkdir resultados2 \n cd ../../"; done > criaResultados2.sh 
+
+for i in {1,4,7,10,13,16,19,22}; do echo -e "cd Chr$i \n ./../solar cnvs-semcov-$i \n cd ../"; done > grupo10.sh
+
+for i in {2,5,8,11,14,17,20}; do echo -e "cd Chr$i \n ./../solar cnvs-semcov-$i \n cd ../"; done > grupo11.sh
+
+for i in {3,6,9,12,15,18,21}; do echo -e "cd Chr$i \n ./../solar cnvs-semcov-$i \n cd ../"; done > grupo12.sh
+
+
+for i in {1..22}; do echo -e "cd Chr$i/CNVs/resultados2 \n grep \"H2r is\" * > herdabilidades \n cd ../../../"; done > pegaHerdabilidades3.sh

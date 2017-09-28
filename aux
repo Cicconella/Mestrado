@@ -66,14 +66,6 @@ mv polygenic.out /home/cicconella/Dropbox/2016/Altura/cn
 
 
 
-
-
-
-
-
-
-
-
 for i in {1..22}; do echo -e "cd resultado$i\n\nfind . -name 'cn*' -exec sed -n 5p {} \; >hp\nfind . -name 'cn*' -exec sed -n 6p {} \; >hsd\nfind . -name 'cn*' -exec sed -n 8p {} \; >copy\n\ncd .."; done >extract.sh
 
 

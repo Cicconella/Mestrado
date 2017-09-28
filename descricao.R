@@ -335,6 +335,9 @@ for(i in 1:22){
   
 }
 
+plotar
+plotar[which(plotar$score==max(plotar$score)),]
+
 ##### Teste #####
 
 # head(plotar)

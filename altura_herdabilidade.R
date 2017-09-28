@@ -36,7 +36,7 @@ head(dados)
 
 ##### Com CNV #####
 
-j=9
+j=1
 for(j in 16:22){
   
   cnv = read.table(paste("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/Cromossomos/cromo", j, sep=""), header = T)
