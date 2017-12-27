@@ -89,6 +89,10 @@ head(a)
 
 colnames(a) = c("Chr", "Begin", "End", "NumberSNPs", "Size", "State", "CN",
                 "Sample", "FirstMarker", "LastMarker")
+head(a)
+dim(a)
+length(unique(a$Sample))
+sum(table(a$Sample))
 
 ##### Individuos Limpos #####
 
@@ -116,9 +120,9 @@ print(paste("Total de amostras:", length(unique(Sample))))
 summary(as.numeric(table(Sample)))
 sd(as.numeric(table(Sample)))
 
-png(paste(dir, "/numberCNVs.png", sep=""))
+#png(paste(dir, "/numberCNVs.png", sep=""))
 hist(table(Sample), nc = 1000, main = "Number of CNVs per sample", xlab = "Number of CNVs")
-dev.off()
+#dev.off()
 
 table(Sample)[which(table(Sample)>500)]
 paste(length(which(table(Sample)>500))/length(unique(Sample)), "são maiores que 500")
@@ -139,10 +143,10 @@ for(i in seq(0,3000, by =25)){
 
 porcentagens
 
-png(paste(dir, "/samplesSize.png", sep=""))
-plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
-lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
-dev.off()
+#png(paste(dir, "/samplesSize.png", sep=""))
+#plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
+#lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
+#dev.off()
 
 bla = cbind(seq(0,3000, by =25), porcentagens)
 
@@ -152,18 +156,19 @@ stargazer(bla, digits = 2)
 
 head(a)
 
-png(paste(dir, "/absCNV.png", sep=""))
+#png(paste(dir, "/absCNV.png", sep=""))
 barplot(table(CN)/sum(table(CN)), col = "blue", xlab = "Copy Number", 
         ylab = "Frequency (%)", main = "Frequency of Copy Number",
         ylim = c(0,0.7))
-dev.off()
+#dev.off()
 
 table(CN)/sum(table(CN))
 
 which(table(Sample)<101)
 names(which(table(Sample)<101))
 
-boxplot(as.numeric(table(Sample)[table(Sample)<101]), col = "lightblue")
+boxplot(as.numeric(table(Sample)[table(Sample)<101]), col = "blue",
+        main="Distribution of Number of CNVs per Sample", pch=20)
 
 bla = a[a$Sample %in% names(which(table(Sample)<101)),]
 
@@ -178,6 +183,39 @@ dev.off()
 table(bla$CN)/sum(table(bla$CN))
 
 
+head(a)
+length(unique(a$Sample))
+
+infos = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", header=T)
+head(infos)
+
+head(a)
+
+cnv_idade = merge(a,infos, by.x="Sample", by.y="cel")
+
+head(cnv_idade)
+length(unique(cnv_idade$Sample))
+
+cnv_idade=cnv_idade[,c("Sample","Idade")]
+head(cnv_idade)
+length(unique(cnv_idade$Sample))
+
+head(cnv_idade)
+tab=table(cnv_idade$Sample)
+base = unique(cnv_idade)
+head(base)
+cnv_idade = cbind(names(tab),as.numeric(tab),base)
+head(cnv_idade)
+plot(cnv_idade$Idade,cnv_idade$`as.numeric(tab)`, pch=20)
+
+cnv_idade = cnv_idade[cnv_idade$`as.numeric(tab)`<100,]
+linear=lm(cnv_idade$Idade~cnv_idade$`as.numeric(tab)`)
+linear
+plot(cnv_idade$Idade,cnv_idade$`as.numeric(tab)`, pch = 20, col="blue",
+     xlab="Age", ylab="Number of CNVs", main="Number of CNVs per Age")
+abline(linear)
+anova(linear)
+
 ##### Size #####
 head(a)
 
@@ -191,26 +229,26 @@ summary(Size)
 
 data = Size
 
-png(paste(dir, "/totalLength.png", sep=""))
+#png(paste(dir, "/totalLength.png", sep=""))
 hist(log10(data), nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", ylim = c(0,6000))
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
-dev.off()
+ #dev.off()
 
 head(a)
 
-png(paste(dir, "/totalDel.png", sep=""))
+#png(paste(dir, "/totalDel.png", sep=""))
 hist(log10(Size[a$CN<2]), 
      nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
      col="blue", main = "Histogram of Deletions Length", ylim = c(0,6000))
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
-dev.off()
+#dev.off()
 
-png(paste(dir, "/totalDup.png", sep=""))
+#png(paste(dir, "/totalDup.png", sep=""))
 hist(log10(Size[a$CN>2]), 
      nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", 
      col="blue", main = "Histogram of Duplications Length", ylim = c(0,6000))
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
-dev.off()
+#dev.off()
 
 
 ########## BY chromosome ##########
@@ -222,7 +260,7 @@ head(ind)
 
 chromosomes <- vector("list",22)
 
-i=1
+i=22
 
 for(i in 1:22){
   
@@ -244,6 +282,9 @@ for(i in 1:22){
   head(aux)
   dim(aux)
   
+  aux[aux$ID==2,]
+  
+  
   seg <-  CNSeg(aux)
   seg
   rsByregion <- getRS(seg, by = "region", imput = TRUE, XY = FALSE, what = "max")
@@ -252,6 +293,10 @@ for(i in 1:22){
   
   dim(cnvA)
   cnvA = cbind(cnvA[,1:3],apply(cnvA[,-c(1:3)],2,arruma))
+  
+  cnvA[200:400,1:5]
+  
+  
   
   chromosomes[[i]] = cnvA
   
@@ -263,15 +308,21 @@ remove(aux)
 remove(rsByregion)
 remove(seg)
 
-#for(k in 300:600){
-#  print(table(as.numeric(chromosomes[[1]][k,-c(1:3)])))
-#}
-
-total = 0
+total = c()
 
 for(i in 1:22){
- total = total + dim(chromosomes[[i]])[1]  
+ total = c(total, dim(chromosomes[[i]])[1])  
 }
+
+total
+sum(total)
+
+barplot(table(as.numeric(chromosomes[[1]][100,-c(1:3)])), col="blue", ylab="Number of Samples",
+        xlab="CN Group", main = "Number of Samples x Number of Copies")
+
+910*0.02
+
+chromosomes[[1]][100,1:10]
 
 head(a)
 
@@ -375,7 +426,15 @@ dev.off()
 
 i=1
 
-maf = 0.5
+original = chromosomes
+
+dim(original[[1]])
+
+#chromosomes = original
+original[[1]][1:10,1:10]
+chromosomes[[1]][1:10,1:10]
+
+maf = 0.02
 
 for(i in 1:22){
   mut_0 = apply(chromosomes[[i]],1,cont_0)
@@ -400,6 +459,7 @@ for(i in 1:22){
   print(i)
 }
 
+
 sizes = c()
 for(i in 1:22){
   y = dim(chromosomes[[i]])[1]
@@ -407,6 +467,17 @@ for(i in 1:22){
 }
 
 sum(sizes)
+
+barplot(table(as.numeric(chromosomes[[1]][100,-c(1:3)])), col="blue", ylab="Number of Samples",
+        xlab="CN Group", main = "Number of Samples x Number of Copies")
+
+910*0.02
+
+chromosomes[[1]][100,1:10]
+
+
+plot(sizes/total)
+plot(total)
 
 
 png(paste(dir, "/plots/before2.png", sep=""))

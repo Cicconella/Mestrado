@@ -14,6 +14,9 @@ length(unique(Sample))
 qc = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/tableQC", sep="\t", header = T)
 qc = qc[order(qc$File),] 
 head(qc)
+
+stargazer::stargazer(head(qc), rownames = F, summary = F)
+
 summary(qc)
 dim(qc)
 
@@ -23,8 +26,9 @@ dim(qc)
 ### LRR_SD
 
 png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/lrr_sd.png")
-hist(qc$LRR_SD, nc = 100, col="blue", xlab = "LRR Standard Deviation", 
-     main = "" )
+hist(qc$LRR_SD, nc = 100, col="blue", xlab = "LRR Standard Deviation", ylim = c(0,70),
+     main="Distribution of LRR Standard Deviation")
+lines(rep(0.35,100),seq(0,70,by=(length(0:70)-1)/99))
 dev.off()
 
 length(which(qc$LRR_SD > 0.35))
@@ -35,8 +39,8 @@ length(which(qc$LRR_SD > 0.35))
 length(which(qc$BAF_mean > 0.6))+length(which(qc$BAF_mean < 0.4))
 
 png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/baf_mean.png")
-hist(qc$BAF_mean, nc = 100, col="blue", xlab = "BAF Mean", 
-     main = "" )
+hist(qc$BAF_mean, col="blue", xlab = "BAF Mean", xlim =c(0.49,0.51),
+     main = "Distribution of BAF Mean" )
 dev.off()
 
 ### BAF_Drif
@@ -45,14 +49,17 @@ length(which(qc$BAF_drift > 0.01))
 
 png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/baf_drift.png")
 hist(qc$BAF_drift, nc = 100, col="blue", xlab = "BAF Drift", 
-     main = "" )
+     main = "Distribution of BAF Drift")
+lines(rep(0.01,100),seq(0,80,by=(length(0:80)-1)/99))
 dev.off()
 
 ### WF
 
 png("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/plots/wf.png")
-hist(qc$WF, nc = 100, col="blue", xlab = "BAF Drift", 
-     main = "" )
+hist(qc$WF, nc = 100, col="blue", xlab = "Waviness Factor", 
+     main = "Distribution of Waviness Factor" )
+lines(rep(0.04,100),seq(0,160,by=(length(0:160)-1)/99))
+lines(rep(-0.04,100),seq(0,160,by=(length(0:160)-1)/99))
 dev.off()
 
 length(which(qc$WF > 0.04))+length(which(qc$WF < -0.04))
@@ -66,7 +73,11 @@ fail3
 fail4 = which(qc$WF < -0.04)
 fail4
 
+
 fail = unique(c(fail1, fail2, fail3, fail4))
+
+length(fail)
+
 
 qc = qc[-fail,]
 dim(qc)
@@ -142,6 +153,7 @@ infos[infos$FID==119,]
 
 head(infos)
 
+i=87
 semR =c()
 for(i in fam){
   kin = infos[infos$FID==i,c(1,2,3,4,5,6)]
@@ -181,5 +193,11 @@ sort(unique(d[,2]))
 write.table(d, "/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/ind_limpos",
             row.names = F)
 
+head(d)
+dim(d)
+
+semR
+
+infos[infos$FID==119,]
 
 

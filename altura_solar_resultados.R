@@ -72,7 +72,8 @@ dim(manAltura)
 
 manAltura$SNP = c(1:nrow(manAltura))
 
-manhattan(manAltura, col = c("darkgreen", "black"), main="Height")
+manhattan(manAltura, col = c("blue", "black"), main="Height",
+          cex.axis=0.9)
 summary(manAltura)
 
 altura[which((altura$`P-value`)==min(altura$`P-value`)),]
@@ -86,5 +87,8 @@ head(manAltura)
 manAltura$P = as.numeric(as.character(manAltura$P))
 dim(manAltura)
 
-manhattan(manAltura, col = c("darkgreen", "black"), main="Height", logp = F, ylim=c(0.82,0.87), ylab="Heritability")
+min(manAltura$P)
+
+manhattan(manAltura, col = c("blue", "black"), main="Height", logp = F, 
+          ylim=c(0.82,0.87), ylab="Heritability", cex.axis=0.85)
 ?manhattan

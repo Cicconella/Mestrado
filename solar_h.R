@@ -85,7 +85,7 @@ p
 
 his = hist(p, nc=20)
 his$density = his$counts/sum(his$counts)*100
-plot(his, freq=F, col="darkgreen", xlab = "Tansmission Rate", ylab = "Freq. (%)",
+plot(his, freq=F, col="blue", xlab = "Tansmission Rate", ylab = "Freq. (%)",
      main="Distribution of CNV Transmission Rate")
 
 his$density
