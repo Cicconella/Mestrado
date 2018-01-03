@@ -516,3 +516,185 @@ head(c1)
 
 
 
+
+
+
+##### Genotipo e fenotipo #####
+
+chromosomes[[1]][1:10,1:10]
+table(as.numeric(chromosomes[[1]][4,-c(1:3)]))
+
+ind = read.table("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/informacoesIndividuos", header=T)
+
+head(ind)
+
+ind[which(ind$cel==1),]
+
+chromosomes[[1]][1:10,1:10]
+
+head(ind)
+
+chromosomes[[1]][1,1:50]
+
+dim(chromosomes[[4]])
+
+seq(1,676, by=10)
+
+## Seleciona o genotipo
+
+somas = c()
+medias = c()
+
+for(k in 1:22){
+  
+  sequencia = nrow(chromosomes[[k]])
+  
+  sequencia = sample(seq(1,sequencia))[1:30]
+  
+  
+  for(c in sequencia){
+    genotipo = as.numeric(chromosomes[[k]][c,-c(1:3)])
+    
+    genotipo = (cbind(colnames(chromosomes[[k]])[-c(1:3)], genotipo))
+    
+    colnames(genotipo) = c("celfiles", "cnv")
+    genotipo = as.data.frame(genotipo)
+    head(genotipo)
+    
+    head(ind)
+    
+    final = merge(ind, genotipo, by.x = "cel", by.y = "celfiles", all.x = T)
+    final[1:100,]
+    tail(final)
+    
+    head(final)
+    dim(final)
+    
+    comb = expand.grid(c(0:4),c(0:4),c(0:4))
+    comb = data.frame(cbind(comb, rep(0,125)))
+    comb[,4] = as.numeric(as.character(comb[,4]))
+    
+    colnames(comb) = c("P1", "P2", "OF", "CN")
+    
+    head(comb)
+    head(final)
+    
+    
+    for(i in 1:nrow(final)){
+      final[i,]
+      
+      if(is.na(as.character(final[i,"cnv"]))){
+        #print("next")
+        next
+      }
+      
+      if(final[i,4]!=0 & final[i,5]!=0){
+        if(is.na(as.character(final[which(final[,3]==final[i,4]),"cnv"]))
+           | is.na(as.character(final[which(final[,3]==final[i,5]),"cnv"]))){
+          next
+        }else{
+          a = t(as.matrix(c(as.numeric(as.character(final[which(final[,3]==final[i,4]),10])),
+                            as.numeric(as.character(final[which(final[,3]==final[i,5]),10])),
+                            as.numeric(as.character(final[i,10])))))
+          colnames(a) = colnames(comb)[-4]
+          comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4] = comb[which(apply(comb, 1, function(x) identical(x[1:3], a[1,]))),4]+1
+        }
+      }else{
+        #print("orfao")
+      }
+    }
+    
+    #png(paste(getwd(),"/trios.png", sep = ""), width = 1400, height = 460)
+    #barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+    #dev.off()
+    
+    for(i in 1:75){
+      a = t(as.matrix(as.numeric(c(rev(comb[i, 1:2]),comb[i,3]))))
+      colnames(a) = c("P1", "P2","OF")
+      bla = which(apply(comb, 1, function(x) identical(x[1:3], a[1,])))
+      if(bla!=i){
+        comb[i,4] = comb[i,4]+comb[bla,4]
+        comb = comb[-bla,]
+      }
+    }
+    
+    dim(comb)
+    
+    #png(paste(getwd(),"/trios2.png", sep = ""), width = 1400, height = 460)
+    #barplot(comb[,4],pch=16, names.arg = apply(comb[,1:3],1,paste,collapse = ""), las=2)
+    #dev.off()
+    
+    head(comb)
+    
+    if(c == sequencia[1]){
+      trios = comb
+    }else{
+      trios = cbind(trios,comb[,4])  
+    }
+    print(c)
+    
+  }
+  head(trios)
+  trios[,1:20]
+  dim(trios)
+  
+  apply(trios[,-(1:3)],2,sum)
+    
+  combinacoes = apply(trios[,-(1:3)], 1,mean)
+  names(combinacoes) = apply(trios[,1:3],1,paste,collapse="")
+  medias = cbind(medias,combinacoes)
+  combinacoes_limpo = combinacoes[-which(names(combinacoes)=="222")] 
+  combinacoes
+
+    
+  png(paste0("mediaTriosChr",k,".png"), width = 1200, height = 540)
+  barplot(combinacoes_limpo, las=2, xlab = "Genotype", ylab = "Mean occurance per CNV",
+          col = "blue", main = paste0("Occurance of CNVs in Trios (Chromosome ",k,")"),
+          ylim = c(0,10))
+  dev.off()
+    
+  combinacoes = apply(trios[,-(1:3)], 1,sum)
+  names(combinacoes) = apply(trios[,1:3],1,paste,collapse="")
+  somas = cbind(somas,combinacoes)
+  combinacoes_limpo = combinacoes[-which(names(combinacoes)=="222")] 
+  combinacoes
+
+  
+      
+  png(paste0("somaTriosChr",k,".png"), width = 1200, height = 540)
+  barplot(combinacoes_limpo, las=2, xlab = "Genotype", ylab = "Total occurance",
+          col = "blue", main = paste0("Occurance of CNVs in Trios (Chromosome ",k,")"),
+          ylim = c(0,200))
+  dev.off()
+    
+}
+
+#aux = medias
+dim(medias)
+head(medias)
+head(somas)
+colnames(somas) = paste("Chr.", seq(1,22))
+
+head(somas)
+
+medias = cbind(medias, apply(medias,1,mean))
+colnames(medias) = c(paste("Chr.", seq(1,22)),"Mean")
+
+
+
+head(medias)
+stargazer(t(medias)[,1:20], summary = F, digits = 2)
+stargazer(t(medias)[,21:40], summary = F, digits = 2)
+stargazer(t(medias)[,41:60], summary = F, digits = 2)
+stargazer(t(medias)[,61:75], summary = F, digits = 2)
+
+dim(trios)
+
+trios[,1:20]
+
+trios[,1:15]
+
+x = cbind(apply(trios[,1:3],1,paste,collapse=""),trios[,4:15])
+colnames(x) = c("CNs", colnames(x)[-1])
+
+stargazer(x, summary = F)
