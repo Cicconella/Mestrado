@@ -82,8 +82,10 @@ bcnv_dico = c()
 bcnv_continuo = c()
 bcnv_factor = list()
 
-i=1
-j=1
+tirado = c()
+
+i=6
+j=9
 
 for(j in 1:22){
   
@@ -130,6 +132,7 @@ for(j in 1:22){
     class(cn$V2)
     table(cn$V2)
     
+  
     head(dadoscn)
     table(dadoscn$V2)
     
@@ -141,45 +144,66 @@ for(j in 1:22){
     
     dadoscn$CNV
     
-    tryCatch({
-      fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+as.numeric(as.character(CNV))+(1|IID), data=dadoscn, varlist=2*kmat,vinit=2)
-      #print(fit)
-      #dadoscn$CNV[1:10]      b_fator[[i]] = b2
-
-      #as.numeric(as.character(dadoscn$CNV[1:10]))
-      fit
-      class(fit)
-      fit[1]
-      fit$var
-      
-      p = extract_coxme_table(fit)
-      p = p[6,4]
-      
-      p_continuo[i] = p
-      
-      varErro = fit$sigma^2                  
-      varPol = unlist(fit[3])
-      varTotal = varErro + varPol
-      
-      hPol = varPol/varTotal
-      hPol
-      h_continuo[i] = hPol
-      
-      b = extract_coxme_table(fit)
-      b = b[6,1]
-
-      b_continuo[i] = b
-      
-      }, error=function(e){
-      h_continuo[i] = NA
-      p_continuo[i] = NA
-      b_continuo[i] = NA
-      #print(i)
+    # tryCatch({
+    #   fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+as.numeric(as.character(CNV))+(1|IID), data=dadoscn, varlist=2*kmat,vinit=2)
+    #   #print(fit)
+    #   #dadoscn$CNV[1:10]      b_fator[[i]] = b2
+    # 
+    #   #as.numeric(as.character(dadoscn$CNV[1:10]))
+    #   fit
+    #   class(fit)
+    #   fit[1]
+    #   fit$var
+    #   
+    #   p = extract_coxme_table(fit)
+    #   p = p[6,4]
+    #   
+    #   p_continuo[i] = p
+    #   
+    #   varErro = fit$sigma^2                  
+    #   varPol = unlist(fit[3])
+    #   varTotal = varErro + varPol
+    #   
+    #   hPol = varPol/varTotal
+    #   hPol
+    #   h_continuo[i] = hPol
+    #   
+    #   b = extract_coxme_table(fit)
+    #   b = b[6,1]
+    # 
+    #   b_continuo[i] = b
+    #   
+    #   }, error=function(e){
+    #   h_continuo[i] = NA
+    #   p_continuo[i] = NA
+    #   b_continuo[i] = NA
+    #   #print(i)
+    # }
+    # )
+    
+    novo_dadoscn = dadoscn
+    novo_dadoscn <- within(novo_dadoscn, CNV <- relevel(CNV, ref = 2))
+    novo_dadoscn$CNV
+    
+    aux = table(novo_dadoscn$CNV)
+    
+    if(length(which(aux<5))!=0){
+      aux = names(which(aux<5))
+      novo_dadoscn[, "CNV"] = as.numeric(as.character(novo_dadoscn[, "CNV"]))
+      novo_dadoscn[which(novo_dadoscn$CNV %in% aux), "CNV"] = NA
+      novo_dadoscn[, "CNV"] = as.factor(novo_dadoscn[, "CNV"] )
+      novo_dadoscn <- within(novo_dadoscn, CNV <- relevel(CNV, ref = "2"))
+      tirado = rbind(tirado,c(j,i))
+      #print("passou aqui")
     }
-    )
+    
+    head(novo_dadoscn)  
     
     tryCatch({
-      fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+CNV+(1|IID), data=dadoscn, varlist=2*kmat,vinit=2)
+      #print(novo_dadoscn$CNV[1:10])
+      novo_dadoscn <- within(novo_dadoscn, CNV <- relevel(CNV, ref = "2"))
+      #print(novo_dadoscn$CNV[1:10])
+      fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+CNV+(1|IID), data=novo_dadoscn, varlist=2*kmat,vinit=2)
       #print(fit)
       #dadoscn$CNV[1:10]
       #as.numeric(as.character(dadoscn$CNV[1:10]))
@@ -216,93 +240,93 @@ for(j in 1:22){
     }
     )
     
-    head(dadoscn)
-    
-    dadoscn$CNV = as.character(dadoscn$CNV)
-    dadoscn$CNV[which(dadoscn$CNV==2)] = "X"
-    dadoscn$CNV[which(dadoscn$CNV!="X")] = 1
-    dadoscn$CNV[which(dadoscn$CNV=="X")] = 0
-    
-    table(dadoscn$CNV)
-    class(dadoscn$CNV)
-    
-    dadoscn$CNV = as.factor(dadoscn$CNV)
-    
-    tryCatch({
-      fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+CNV+(1|IID), data=dadoscn, varlist=2*kmat,vinit=2)
-      #print(fit)
-      #dadoscn$CNV[1:10]
-      #as.numeric(as.character(dadoscn$CNV[1:10]))
-      
-      class(fit)
-      fit
-      fit$var
-      
-      p = extract_coxme_table(fit)
-      p = p[6,4]
-      
-      p_dico[i] = p
-      
-      varErro = fit$sigma^2                  
-      varPol = unlist(fit[3])
-      varTotal = varErro + varPol
-      
-      hPol = varPol/varTotal
-      hPol
-      h_dico[i] = hPol
-      #print(i)
-      
-      b = extract_coxme_table(fit)
-      b = b[6,1]
-      
-      b_dico[i] = b
-      
-    }, error=function(e){
-      h_dico[i] = NA
-      b_dico[i] = NA
-      p_dico[i] = NA
-      #print(i)
-    }
-    )
-    
+  #   head(dadoscn)
+  #   
+  #   dadoscn$CNV = as.character(dadoscn$CNV)
+  #   dadoscn$CNV[which(dadoscn$CNV==2)] = "X"
+  #   dadoscn$CNV[which(dadoscn$CNV!="X")] = 1
+  #   dadoscn$CNV[which(dadoscn$CNV=="X")] = 0
+  #   
+  #   table(dadoscn$CNV)
+  #   class(dadoscn$CNV)
+  #   
+  #   dadoscn$CNV = as.factor(dadoscn$CNV)
+  #   
+  #   tryCatch({
+  #     fit <- lmekin(altura~1+Idade+SEX+pca1+pca2+CNV+(1|IID), data=dadoscn, varlist=2*kmat,vinit=2)
+  #     #print(fit)
+  #     #dadoscn$CNV[1:10]
+  #     #as.numeric(as.character(dadoscn$CNV[1:10]))
+  #     
+  #     class(fit)
+  #     fit
+  #     fit$var
+  #     
+  #     p = extract_coxme_table(fit)
+  #     p = p[6,4]
+  #     
+  #     p_dico[i] = p
+  #     
+  #     varErro = fit$sigma^2                  
+  #     varPol = unlist(fit[3])
+  #     varTotal = varErro + varPol
+  #     
+  #     hPol = varPol/varTotal
+  #     hPol
+  #     h_dico[i] = hPol
+  #     #print(i)
+  #     
+  #     b = extract_coxme_table(fit)
+  #     b = b[6,1]
+  #     
+  #     b_dico[i] = b
+  #     
+  #   }, error=function(e){
+  #     h_dico[i] = NA
+  #     b_dico[i] = NA
+  #     p_dico[i] = NA
+  #     #print(i)
+  #   }
+  #   )
+  #   
   }
-  
-  # png(paste("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/Cromossomos/chr",j,".png", sep=""))
-  # plot(h, pch=16, ylim=c(0,1), main = paste("Chromosome", j))
-  # abline(valor,0, col = "red")
-  # dev.off()
-  
-  h = cbind(rep(j, length(h_dico)), h_dico)
-  herdabilidades_dico = rbind(herdabilidades_dico, h)
-  head(herdabilidades_dico)
-  
-  h = cbind(rep(j, length(h_continuo)), h_continuo)
-  herdabilidades_continuo = rbind(herdabilidades_continuo, h)
-  head(herdabilidades_continuo)
-  
+  # 
+  # # png(paste("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/Cromossomos/chr",j,".png", sep=""))
+  # # plot(h, pch=16, ylim=c(0,1), main = paste("Chromosome", j))
+  # # abline(valor,0, col = "red")
+  # # dev.off()
+  # 
+  # h = cbind(rep(j, length(h_dico)), h_dico)
+  # herdabilidades_dico = rbind(herdabilidades_dico, h)
+  # head(herdabilidades_dico)
+  # 
+  # h = cbind(rep(j, length(h_continuo)), h_continuo)
+  # herdabilidades_continuo = rbind(herdabilidades_continuo, h)
+  # head(herdabilidades_continuo)
+  # 
   h = cbind(rep(j, length(h_fator)), h_fator)
   herdabilidades_factor = rbind(herdabilidades_factor, h)
   head(herdabilidades_factor)
   
-  p = cbind(rep(j, length(p_dico)), p_dico)
-  pv_dico = rbind(pv_dico, p)
-  head(pv_dico)
-  
-  p = cbind(rep(j, length(p_continuo)), p_continuo)
-  pv_continuo = rbind(pv_continuo, p)
-  head(pv_continuo)
+  # p = cbind(rep(j, length(p_dico)), p_dico)
+  # pv_dico = rbind(pv_dico, p)
+  # head(pv_dico)
+  # 
+  # p = cbind(rep(j, length(p_continuo)), p_continuo)
+  # pv_continuo = rbind(pv_continuo, p)
+  # head(pv_continuo)
   
   pv_factor[[j]] = p_fator
   pv_factor[[j]]
   
   
-  b = cbind(rep(j, length(b_dico)), b_dico)
-  bcnv_dico = rbind(bcnv_dico, b)
-  head(bcnv_dico)
-  
-  b = cbind(rep(j, length(b_continuo)), b_continuo)
-  bcnv_continuo = rbind(bcnv_continuo, b)
-  head(bcnv_continuo)
+  # b = cbind(rep(j, length(b_dico)), b_dico)
+  # bcnv_dico = rbind(bcnv_dico, b)
+  # head(bcnv_dico)
+  # 
+  # b = cbind(rep(j, length(b_continuo)), b_continuo)
+  # bcnv_continuo = rbind(bcnv_continuo, b)
+  # head(bcnv_continuo)
   
   bcnv_factor[[j]] = b_fator
   bcnv_factor[[j]]
@@ -354,6 +378,8 @@ for(j in 1:22){
      
   }
 }
+
+dim(tirado)
 
 ##### Resultados #####
 
@@ -440,7 +466,7 @@ head(man)
 png("man_height_continous_pcs.png", width = 1024, height = 452)
 par(bg=NA)
 manhattan(man, col = c("blue","black"), cex.main=2,
-          main = "Height (CNV as Continous Covariate)",
+          main = "Height (CNV as Discrete Covariate)",
           cex.axis=0.75, ylim= c(0,5),suggestiveline = F)
 dev.off()
 
@@ -505,7 +531,8 @@ png("man_height_her_dico_pcs.png", width = 1024, height = 452)
 par(bg=NA)
 manhattan(man, col = c("blue","black"), cex.main=2,
           main = "Height Heritability (CNV as Dichotomous Covariate)",
-          cex.axis=0.75, logp = F, ylim =c(0.8,0.9), suggestiveline = valor)
+          cex.axis=0.75, logp = F, ylim =c(0.8,0.9), suggestiveline = valor,
+          ylab="Heritability")
 dev.off()
 
 dim(info)
@@ -528,8 +555,9 @@ head(man)
 png("man_height_her_continous_pcs.png", width = 1024, height = 452)
 par(bg=NA)
 manhattan(man, col = c("blue","black"), cex.main=2,
-          main = "Height Heritability (CNV as Continous Covariate)",
-          cex.axis=0.75, logp = F, ylim =c(0.8,0.9), suggestiveline = valor)
+          main = "Height Heritability (CNV as Discrete Covariate)",
+          cex.axis=0.75, logp = F, ylim =c(0.8,0.9), suggestiveline = valor,
+          ylab="Heritability")
 dev.off()
 
 

@@ -45,5 +45,5 @@ fim$`423` = as.factor(fim$`423`)
 fim$`424` = as.character(fim$`424`)
 fim$`424` = as.factor(fim$`424`)
 
-boxplot(fim$altura~fim$`423`, xlab = "Number of Copies", ylab="Height", col="blue")
-boxplot(fim$altura~fim$`424`, xlab = "Number of Copies", ylab="Height", col="blue")
+boxplot(fim$altura~fim$`423`, xlab = "Number of Copies", ylab="Height", col="blue", cex.lab = 1.5)
+boxplot(fim$altura~fim$`424`, xlab = "Number of Copies", ylab="Height", col="blue", cex.lab = 1.5)

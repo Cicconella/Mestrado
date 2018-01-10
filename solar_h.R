@@ -1,5 +1,13 @@
 library(qqman)
 
+x=c(1,23,232,2,2,2,1)
+
+mutat = function(x){
+  return(length(which(x[-c(1:3)]!=2)))
+}
+
+mutat(x)
+
 i=1
 
 herdabilidades = c()
@@ -8,7 +16,8 @@ for(i in 1:22){
   
   cnv = read.table(paste("/media/cicconella/01D2FE834EA51BE0/Documents and Settings/Nina/Google Drive/Mestrado/Cromossomos/cromo", i, sep=""), header = T)
   cnv[1:10,1:10]
-  
+
+  mutacoes = apply(cnv,1,mutat)  
   
   a = read.table(paste("/home/cicconella/solar831/Chr", i, "/CNVs/resultados/herdabilidades",sep=""), sep="?")
   head(a)
@@ -43,7 +52,7 @@ for(i in 1:22){
   
   head(final)
   
-  final = cbind(cnv[,1:3], final)
+  final = cbind(cnv[,1:3], mutacoes, final)
 
   head(final)
     
@@ -53,7 +62,12 @@ for(i in 1:22){
 dim(herdabilidades)
 
 head(herdabilidades)
-colnames(herdabilidades) = c("Chr", "Start", "End","CNV", "P-value", "Herdabilidade")
+colnames(herdabilidades) = c("Chr", "Start", "End", "NumMut","CNV", "P-value", "Herdabilidade")
+
+head(herdabilidades)
+
+plot(as.numeric(as.character(herdabilidades$Herdabilidade)), herdabilidades$NumMut, pch = 20, col=rgb(0,0,1,0.5), xlab="Transmission Rate", 
+     ylab="Frequency")
 
 class(herdabilidades)
 
@@ -69,14 +83,15 @@ head(h)
 h$P = as.numeric(as.character(h$P))
 dim(h)
 
-manhattan(h, col = c("darkgreen", "black"), main="CNVs Transmission Rate", 
+manhattan(h, col = c("blue", "black"), main="CNVs Transmission Rate", 
           logp = F, ylim=c(0,1), ylab="Transmission Rate")
 
-hist(h$P, col="darkgreen", nc=100)
+hist(h$P, col="darkblue", nc=100)
 
 a = length(which(h$P==0))
 b = length(which(h$P==1))
-
+a
+b
 p = h$P
 p = p[-which(h$P==0)]
 p
@@ -89,8 +104,13 @@ plot(his, freq=F, col="blue", xlab = "Tansmission Rate", ylab = "Freq. (%)",
      main="Distribution of CNV Transmission Rate")
 
 his$density
+a
+b
+dim(h)
+a/nrow(h)
+b/nrow(h)
 
-##### Novas herdabilidades #####
+##### Novas herdabilidades - sem covariaveis #####
 
 herdabilidades2 = c()
 i=1

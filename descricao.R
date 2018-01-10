@@ -132,7 +132,16 @@ paste(length(which(table(Sample)>100))/length(unique(Sample)), "são maiores que
 table(Sample)
 summary(as.numeric(table(Sample)))
 
-summary(table(Sample))
+normal = table(Sample)
+length(normal)
+normal = normal[normal<101]
+length(normal)
+753/910
+summary(as.numeric(normal))
+sd(as.numeric(normal))
+hist(as.numeric(normal), nc=100)
+shapiro.test(as.numeric(normal))
+shapiro.test(rnorm(100,5,2))
 
 porcentagens = c()
 
@@ -140,11 +149,10 @@ for(i in seq(0,3000, by =25)){
   porcentagens = c(porcentagens, length(which(table(Sample)<i))/length(unique(Sample)))
 }
 
-
 porcentagens
 
-#png(paste(dir, "/samplesSize.png", sep=""))
 #plot(seq(0,4000, by =25), porcentagens, pch="", ylab="% Samples", xlab = "Number of CNVs")
+#png(paste(dir, "/samplesSize.png", sep=""))
 #lines(seq(0,4000, by =25), porcentagens, main = "Frequency of samples by number of CNVs")
 #dev.off()
 
@@ -209,7 +217,8 @@ head(cnv_idade)
 plot(cnv_idade$Idade,cnv_idade$`as.numeric(tab)`, pch=20)
 
 cnv_idade = cnv_idade[cnv_idade$`as.numeric(tab)`<100,]
-linear=lm(cnv_idade$Idade~cnv_idade$`as.numeric(tab)`)
+head(cnv_idade)
+linear=lm(cnv_idade$`as.numeric(tab)`~cnv_idade$Idade)
 linear
 plot(cnv_idade$Idade,cnv_idade$`as.numeric(tab)`, pch = 20, col="blue",
      xlab="Age", ylab="Number of CNVs", main="Number of CNVs per Age")
@@ -220,6 +229,8 @@ anova(linear)
 head(a)
 
 summary(Size)
+log10(3)
+log10(27435314)
 
 hist(Size, nc=100)
 barplot(table(Size))
@@ -229,10 +240,16 @@ summary(Size)
 
 data = Size
 
+log10(summary(Size))
+summary(log10(data))
+10**summary(log10(data))
+10**(1:10)
+
 #png(paste(dir, "/totalLength.png", sep=""))
+hist(log10(data), nc=100, xlab = "Length of CNV", ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", ylim = c(0,6000))
 hist(log10(data), nc=100,xaxt="n", xlab = "Length of CNV", ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", ylim = c(0,6000))
 axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
- #dev.off()
+#dev.off()
 
 head(a)
 
@@ -317,6 +334,8 @@ for(i in 1:22){
 total
 sum(total)
 
+
+
 barplot(table(as.numeric(chromosomes[[1]][100,-c(1:3)])), col="blue", ylab="Number of Samples",
         xlab="CN Group", main = "Number of Samples x Number of Copies")
 
@@ -327,6 +346,8 @@ chromosomes[[1]][100,1:10]
 head(a)
 
 dim(a)
+
+
 
 ##### CNVs, onde estao? #####
 
@@ -518,6 +539,58 @@ head(c1)
 
 
 
+##### Tamanho de CNVs Minimais #####
+
+total  = c()
+
+head(chromosomes[[1]][1:10,1:10])
+
+for(i in 1:22){
+  total = c(total, chromosomes[[i]][,3]-chromosomes[[i]][,2])  
+}
+total= total+1
+
+length(total)
+
+summary(total)
+
+hist(log10(total))
+hist(log10(total), nc=100, xlab = "Length of CNV", 
+     ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", 
+     ylim = c(0,1000))
+hist(log10(total), nc=100,xaxt="n", xlab = "Length of CNV", 
+     ylab = "Absolute Frequency", col="blue", main = "Histogram of CNV Length", 
+     ylim = c(0,1000))
+axis(1, at=1:7, labels = c("10bp", "100bp", "1kb", "10kb", "100kb", "1Mb", "10Mb"))
+
+
+
+
+##### Quantidade por individuo #####
+
+chromosomes[[1]][1:10,1:10]
+
+
+contaMut = function(x){
+  return(length(which(x!=2)))  
+}
+
+numero = c()
+
+for(i in 1:22){
+  numero=rbind(numero,apply(chromosomes[[i]][,-c(1:3)],2,contaMut))
+}
+
+dim(numero)
+numero[1:10,1:10]
+
+numero = apply(numero,2,sum)
+numero
+hist(numero, nc=100, col="blue", main="Number of CNVs per Sample", xlab="Number of CNVs")
+summary(numero)
+
+length(numero[numero<1001])
+801/910
 
 ##### Genotipo e fenotipo #####
 
@@ -545,11 +618,13 @@ seq(1,676, by=10)
 somas = c()
 medias = c()
 
+k=22
+
 for(k in 1:22){
   
   sequencia = nrow(chromosomes[[k]])
   
-  sequencia = sample(seq(1,sequencia))[1:30]
+  sequencia = sample(seq(1,sequencia))
   
   
   for(c in sequencia){
@@ -579,6 +654,7 @@ for(k in 1:22){
     head(comb)
     head(final)
     
+    i=1
     
     for(i in 1:nrow(final)){
       final[i,]
@@ -638,19 +714,19 @@ for(k in 1:22){
   trios[,1:20]
   dim(trios)
   
-  apply(trios[,-(1:3)],2,sum)
+  trios[,-c(1:3)]=trios[,-c(1:3)]/unique(apply(trios[,-(1:3)],2,sum))
     
   combinacoes = apply(trios[,-(1:3)], 1,mean)
   names(combinacoes) = apply(trios[,1:3],1,paste,collapse="")
   medias = cbind(medias,combinacoes)
   combinacoes_limpo = combinacoes[-which(names(combinacoes)=="222")] 
-  combinacoes
+  combinacoes*100
 
     
   png(paste0("mediaTriosChr",k,".png"), width = 1200, height = 540)
   barplot(combinacoes_limpo, las=2, xlab = "Genotype", ylab = "Mean occurance per CNV",
           col = "blue", main = paste0("Occurance of CNVs in Trios (Chromosome ",k,")"),
-          ylim = c(0,10))
+          ylim = c(0,1))
   dev.off()
     
   combinacoes = apply(trios[,-(1:3)], 1,sum)
@@ -677,15 +753,20 @@ colnames(somas) = paste("Chr.", seq(1,22))
 
 head(somas)
 
-medias = cbind(medias, apply(medias,1,mean))
-colnames(medias) = c(paste("Chr.", seq(1,22)),"Mean")
 
+medias = cbind(medias, apply(medias,1,mean),apply(medias,1,sd))
+#colnames(medias) = c(paste("Chr.", seq(1,22)),"Mean")
 
+barplot(apply(medias,1,mean))
+
+medias = medias*100
+colnames(medias) = c(paste("Chr.", seq(1,22)), "Mean", "Std. dev.")
 
 head(medias)
-stargazer(t(medias)[,1:20], summary = F, digits = 2)
-stargazer(t(medias)[,21:40], summary = F, digits = 2)
-stargazer(t(medias)[,41:60], summary = F, digits = 2)
+stargazer(t(medias)[,1:15], summary = F, digits = 2)
+stargazer(t(medias)[,16:30], summary = F, digits = 2)
+stargazer(t(medias)[,31:45], summary = F, digits = 2)
+stargazer(t(medias)[,46:60], summary = F, digits = 2)
 stargazer(t(medias)[,61:75], summary = F, digits = 2)
 
 dim(trios)
